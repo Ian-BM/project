@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ course.code }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <div class="page-header-text"><h1>{{ course.code }} — {{ course.name }}</h1><p class="page-header-subtitle">{{ course.department.name|default:"No department" }} · {{ course.semester }} {{ course.academic_year }}</p></div>
+    <div class="page-header-actions">
+        <a href="{% url 'course_enroll' course.pk %}" class="btn btn-primary"><i data-lucide="user-plus"></i> Enroll Students</a>
+        <a href="{% url 'course_edit' course.pk %}" class="btn btn-secondary">Edit</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="stat-grid mb-6">
+    <div class="stat-card"><div class="stat-card-value">{{ enrollment_count }}</div><div class="stat-card-label">Students</div></div>
+    <div class="stat-card"><div class="stat-card-value">{{ sessions_count }}</div><div class="stat-card-label">Sessions</div></div>
+    <div class="stat-card"><div class="stat-card-value">{{ avg_confidence }}%</div><div class="stat-card-label">Recognition %</div></div>
+    <div class="stat-card"><div class="stat-card-value">{{ course.credits }}</div><div class="stat-card-label">Credits</div></div>
+</div>
+
+<div class="grid-2">
+    <div class="card"><div class="card-header"><h3>Course Information</h3></div><div class="card-body">
+        <p><strong>Teacher:</strong> {{ course.teacher.get_full_name|default:course.teacher.username|default:"—" }}</p>
+        <p class="mt-2"><strong>Description:</strong> {{ course.description|default:"No description." }}</p>
+    </div></div>
+    <div class="card"><div class="card-header"><h3>Recent Sessions</h3></div><div class="card-body activity-list">
+        {% for s in sessions %}<div class="activity-item"><strong>Session #{{ s.id }}</strong><p class="text-muted">{{ s.start_time|date:"M d, H:i" }} — {% if s.is_active %}Active{% else %}Ended{% endif %}</p></div>{% empty %}<p class="text-muted">No sessions.</p>{% endfor %}
+    </div></div>
+</div>
+
+<div class="card mt-6"><div class="card-header"><h3>Enrolled Students</h3></div>
+    <table class="data-table"><thead><tr><th>Name</th><th>Registration</th><th>Attendance %</th><th>Actions</th></tr></thead>
+    <tbody>{% for row in student_rows %}
+    <tr>
+        <td><a href="{% url 'student_detail' row.student.pk %}">{{ row.student.name }}</a></td>
+        <td>{{ row.profile.registration_number|default:"—" }}</td>
+        <td>{{ row.attendance_percent }}%</td>
+        <td>
+            <form method="post" action="{% url 'course_unenroll' course.pk row.student.pk %}" style="display:inline;">{% csrf_token %}
+            <button class="btn btn-sm btn-danger" type="submit">Remove</button></form>
+        </td>
+    </tr>{% empty %}<tr><td colspan="4" class="text-muted">No students enrolled.</td></tr>{% endfor %}</tbody></table>
+</div>
+{% endblock %}

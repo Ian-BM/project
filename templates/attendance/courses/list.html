@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Courses{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <div class="page-header-text"><h1>Courses</h1><p class="page-header-subtitle">Manage courses and student enrollment</p></div>
+    <div class="page-header-actions"><a href="{% url 'course_create' %}" class="btn btn-primary"><i data-lucide="book-plus"></i> Create Course</a></div>
+</div>
+{% endblock %}
+
+{% block content %}
+<form class="filter-bar" method="get">
+    <div class="table-search" style="max-width:280px;"><span class="table-search-icon"><i data-lucide="search"></i></span>
+        <input type="search" name="q" value="{{ filters.q }}" placeholder="Search courses..."></div>
+    <select name="department" class="form-select" style="width:auto;"><option value="">All Departments</option>{% for d in departments %}<option value="{{ d.id }}" {% if filters.department == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>{% endfor %}</select>
+    <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+</form>
+
+<div class="card">
+    <table class="data-table">
+        <thead><tr>
+            <th>Code</th><th>Name</th><th>Department</th><th>Teacher</th><th>Students</th>
+            <th>Attendance %</th><th>Recognition %</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+        {% for row in rows %}
+        <tr>
+            <td><a href="{% url 'course_detail' row.course.pk %}" class="font-medium">{{ row.course.code }}</a></td>
+            <td>{{ row.course.name }}</td>
+            <td>{{ row.course.department.name|default:"—" }}</td>
+            <td>{{ row.course.teacher.get_full_name|default:row.course.teacher.username|default:"—" }}</td>
+            <td>{{ row.students }}</td>
+            <td>{{ row.attendance_percent }}%</td>
+            <td>{{ row.recognition_percent }}%</td>
+            <td>
+                <a href="{% url 'course_detail' row.course.pk %}" class="btn btn-sm btn-ghost">View</a>
+                <a href="{% url 'course_edit' row.course.pk %}" class="btn btn-sm btn-ghost">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8"><div class="empty-state"><h3>No courses yet</h3><a href="{% url 'course_create' %}" class="btn btn-primary">Create Course</a></div></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

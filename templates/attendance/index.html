@@ -1,275 +1,128 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Attendance</title>
-    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 24px;
-            background: #f3f4f6;
-            color: #111827;
-        }
-        .container {
-            max-width: 720px;
-            margin: 0 auto;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            padding: 20px;
-        }
-        h1 {
-            margin-top: 0;
-            font-size: 24px;
-        }
-        .video-container {
-            position: relative;
-            width: 100%;
-            max-width: 640px;
-            aspect-ratio: 4 / 3;
-            margin: 0 auto;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-        #overlayCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none;
-        }
-        button {
-            margin-top: 16px;
-            background: #2563eb;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 18px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        #status {
-            margin-top: 16px;
-            font-weight: bold;
-        }
-        #students {
-            margin-top: 12px;
-            padding-left: 20px;
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <div>
-            <h1>Face Attendance</h1>
-        </div>
-        <div>
-            <a href="/dashboard/" style="margin-right:16px; color:#2563eb; text-decoration:none;">Dashboard</a>
-            <a href="{% url 'logout' %}" style="color:#ef4444; text-decoration:none;">Logout</a>
-        </div>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Face Attendance{% endblock %}
+
+{% block extra_head %}
+<script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol class="breadcrumbs-list">
+        <li class="breadcrumbs-item"><a href="{% url 'dashboard' %}">Dashboard</a><span class="breadcrumbs-separator"><i data-lucide="chevron-right"></i></span></li>
+        <li class="breadcrumbs-item" aria-current="page">Attendance</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <div class="page-header-text">
+        <h1>AI Attendance Capture</h1>
+        <p class="page-header-subtitle">Live facial recognition attendance with real-time bounding boxes and confidence scoring.</p>
     </div>
-    <div class="video-container">
-        <video id="video" autoplay playsinline></video>
-        <canvas id="overlayCanvas" class="overlay-canvas"></canvas>
+    <div class="page-header-actions">
+        <span class="badge badge-neutral" id="recognitionStateBadge">Initializing</span>
     </div>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <button id="startSessionBtn">Start Session</button>
-    <button id="endSessionBtn" disabled>End Session</button>
-    <button id="captureBtn">Capture Attendance</button>
-    <p id="status">Starting camera...</p>
-    <p id="sessionStatus">Session: Stopped</p>
-    <ul id="students"></ul>
 </div>
+{% endblock %}
 
-<script>
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const overlayCanvas = document.getElementById("overlayCanvas");
-    const startSessionBtn = document.getElementById("startSessionBtn");
-    const endSessionBtn = document.getElementById("endSessionBtn");
-    const captureBtn = document.getElementById("captureBtn");
-    const statusEl = document.getElementById("status");
-    const sessionStatusEl = document.getElementById("sessionStatus");
-    const studentsEl = document.getElementById("students");
-    let sessionActive = false;
-    let captureIntervalId = null;
-    let modelsLoaded = false;
-    let displaySize = null;
+{% block content %}
+<div class="attendance-phase3">
+    <div class="attendance-main-grid">
+        <div class="card attendance-camera-card">
+            <div class="card-header">
+                <div class="card-header-title"><div class="card-header-icon"><i data-lucide="video"></i></div><h3>Live Camera</h3></div>
+                <div class="camera-meta">
+                    <span class="badge badge-neutral"><span id="fpsCounter">FPS: —</span></span>
+                    <span class="badge badge-neutral" id="detectionCountBadge">Detections: 0</span>
+                    <span class="badge badge-neutral" id="captureIntervalBadge">Interval: 5s</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="video-container video-container--large">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="overlayCanvas"></canvas>
+                    <div class="camera-feedback" id="cameraFeedback">Starting camera...</div>
+                </div>
+                <canvas id="canvas" class="hidden"></canvas>
+                <div class="recognition-status-bar" id="status">Starting camera...</div>
+            </div>
+        </div>
 
-    async function loadModels() {
-        try {
-            statusEl.textContent = "Loading face detection models...";
-            await faceapi.nets.tinyFaceDetector.loadFromUri('/static/models/');
-            modelsLoaded = true;
-            statusEl.textContent = "Face detection ready.";
-            if (video.videoWidth && video.videoHeight) {
-                detectFaces();
-            }
-        } catch (error) {
-            statusEl.textContent = "Failed to load face detection models. Please check /static/models/.";
-            console.error("Model loading error:", error);
-        }
-    }
+        <div class="attendance-sidebar-panels">
+            <div class="card">
+                <div class="card-header"><h3>Session Controls</h3><span class="badge badge-neutral" id="sessionStatus">Stopped</span></div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Course</label>
+                        <select id="courseSelect" class="form-select">
+                            <option value="">— No course —</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.code }} — {{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="session-timer-display" id="sessionTimer">00:00:00</div>
+                    <div class="btn-group" style="flex-direction:column;">
+                        <button class="btn btn-success" id="startSessionBtn" type="button"><i data-lucide="play"></i> Start Session</button>
+                        <button class="btn btn-warning" id="pauseSessionBtn" type="button" disabled><i data-lucide="pause"></i> Pause Session</button>
+                        <button class="btn btn-danger" id="endSessionBtn" type="button" disabled><i data-lucide="square"></i> End Session</button>
+                        <button class="btn btn-primary" id="captureBtn" type="button"><i data-lucide="camera"></i> Capture Now</button>
+                    </div>
+                    <div class="live-stats-grid mt-4">
+                        <div class="live-stat"><span class="text-muted">Teacher</span><strong>{{ request.user.first_name|default:request.user.username }}</strong></div>
+                        <div class="live-stat"><span class="text-muted">Frames</span><strong id="framesProcessed">0</strong></div>
+                        <div class="live-stat"><span class="text-muted">Present</span><strong id="studentsPresentCount">0</strong></div>
+                        <div class="live-stat"><span class="text-muted">Unknown</span><strong id="unknownFacesCount">0</strong></div>
+                        <div class="live-stat"><span class="text-muted">Accuracy</span><strong id="recognitionAccuracy">—</strong></div>
+                        <div class="live-stat"><span class="text-muted">Avg Conf.</span><strong id="avgConfidence">—</strong></div>
+                    </div>
+                </div>
+            </div>
 
-    async function startCamera() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-            video.srcObject = stream;
-            video.addEventListener('play', () => {
-                overlayCanvas.width = video.videoWidth;
-                overlayCanvas.height = video.videoHeight;
-                displaySize = { width: video.videoWidth, height: video.videoHeight };
-                faceapi.matchDimensions(overlayCanvas, displaySize);
-                if (modelsLoaded) {
-                    detectFaces();
-                }
-            });
-            statusEl.textContent = "Camera ready. Loading face detector...";
-        } catch (error) {
-            statusEl.textContent = "Unable to access webcam.";
-            captureBtn.disabled = true;
-        }
-    }
+            <div class="card">
+                <div class="card-header"><h3>Recognition Feed</h3></div>
+                <div class="card-body">
+                    <ul id="students" class="recognition-feed-list"></ul>
+                    <div id="unknownFaces" class="unknown-faces-list"></div>
+                    <div class="empty-state" id="studentsEmpty" style="padding:1.5rem 0;"><p class="text-muted">No recognitions yet.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    async function detectFaces() {
-        if (!modelsLoaded || !video.videoWidth || !video.videoHeight || !displaySize) {
-            requestAnimationFrame(detectFaces);
-            return;
-        }
+    <div class="card mt-6">
+        <div class="card-header">
+            <div class="card-header-title"><div class="card-header-icon"><i data-lucide="table"></i></div><h3>Live Attendance Table</h3></div>
+            <span class="badge badge-primary" id="liveTableBadge">Auto-refresh</span>
+        </div>
+        <div class="table-wrapper" style="border:none;border-radius:0;">
+            <table class="data-table" id="liveAttendanceTable">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Recognition Time</th>
+                        <th>Confidence</th>
+                        <th>Status</th>
+                        <th>Attendance %</th>
+                        <th>State</th>
+                    </tr>
+                </thead>
+                <tbody id="liveAttendanceBody">
+                    <tr><td colspan="6" class="text-muted" style="text-align:center;padding:2rem;">Start a session to see live attendance.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-        try {
-            const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.5 });
-            const detections = await faceapi.detectAllFaces(video, options);
-            const resizedDetections = faceapi.resizeResults(detections, displaySize);
-            const ctx = overlayCanvas.getContext('2d');
-            ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-            faceapi.draw.drawDetections(overlayCanvas, resizedDetections);
-        } catch (error) {
-            console.error("Detection error:", error);
-        }
-
-        requestAnimationFrame(detectFaces);
-    }
-
-    async function captureAttendance() {
-        if (!video.videoWidth || !video.videoHeight) {
-            statusEl.textContent = "Camera not ready yet.";
-            return;
-        }
-
-        captureBtn.disabled = true;
-        statusEl.textContent = "Capturing image...";
-        studentsEl.innerHTML = "";
-
-        const maxWidth = 640;
-        const scale = Math.min(1, maxWidth / video.videoWidth);
-        canvas.width = Math.floor(video.videoWidth * scale);
-        canvas.height = Math.floor(video.videoHeight * scale);
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const image = canvas.toDataURL("image/jpeg", 0.6);
-
-        try {
-            statusEl.textContent = "Recognizing faces...";
-            const response = await fetch("/recognize/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ image })
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || "Request failed.");
-            }
-
-            const students = data.students || [];
-            if (students.length === 0) {
-                statusEl.textContent = sessionActive ? "No known student detected in this frame." : "No active session.";
-            } else {
-                statusEl.textContent = "Detections captured.";
-                students.forEach((name) => {
-                    const li = document.createElement("li");
-                    li.textContent = name;
-                    studentsEl.appendChild(li);
-                });
-            }
-        } catch (error) {
-            statusEl.textContent = `Error: ${error.message}`;
-        } finally {
-            captureBtn.disabled = false;
-        }
-    }
-
-    async function startSession() {
-        try {
-            const response = await fetch("/start-session/", { method: "POST" });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || "Unable to start session.");
-            }
-
-            sessionActive = true;
-            sessionStatusEl.textContent = `Session: Active (#${data.session_id})`;
-            statusEl.textContent = data.message ? data.message : "Session started.";
-            startSessionBtn.disabled = true;
-            endSessionBtn.disabled = false;
-
-            if (captureIntervalId) {
-                clearInterval(captureIntervalId);
-            }
-            captureIntervalId = setInterval(captureAttendance, 5000);
-            captureAttendance();
-        } catch (error) {
-            statusEl.textContent = `Error: ${error.message}`;
-        }
-    }
-
-    async function endSession() {
-        try {
-            const response = await fetch("/end-session/", { method: "POST" });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || "Unable to end session.");
-            }
-
-            sessionActive = false;
-            sessionStatusEl.textContent = "Session: Stopped";
-            statusEl.textContent = "Session ended. Attendance summary computed.";
-            startSessionBtn.disabled = false;
-            endSessionBtn.disabled = true;
-            if (captureIntervalId) {
-                clearInterval(captureIntervalId);
-                captureIntervalId = null;
-            }
-        } catch (error) {
-            statusEl.textContent = `Error: ${error.message}`;
-        }
-    }
-
-    captureBtn.addEventListener("click", captureAttendance);
-    startSessionBtn.addEventListener("click", startSession);
-    endSessionBtn.addEventListener("click", endSession);
-    startCamera();
-    loadModels();
-</script>
-</body>
-</html>
+{% block extra_js %}
+<script src="{% static 'js/attendance.js' %}"></script>
+{% endblock %}

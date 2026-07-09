@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Create{% endif %} Course{% endblock %}
+
+{% block page_header %}
+<div class="page-header"><div class="page-header-text"><h1>{% if is_edit %}Edit Course{% else %}Create Course{% endif %}</h1></div></div>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:720px;"><div class="card-body">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group"><label class="form-label">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="form-error">{{ field.errors.0 }}</div>{% endif %}</div>
+        {% endfor %}
+        <div class="btn-group">
+            <button class="btn btn-primary" type="submit">{% if is_edit %}Save{% else %}Create{% endif %}</button>
+            <a href="{% url 'course_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div></div>
+{% endblock %}

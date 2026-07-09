@@ -1,99 +1,114 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 24px;
-            background: #f3f4f6;
-            color: #111827;
-        }
-        .container {
-            max-width: 960px;
-            margin: 0 auto;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            padding: 20px;
-        }
-        h1 {
-            margin-top: 0;
-        }
-        .meta {
-            display: flex;
-            gap: 24px;
-            margin-bottom: 16px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border-bottom: 1px solid #e5e7eb;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background: #f9fafb;
-        }
-        a {
-            display: inline-block;
-            margin-top: 16px;
-            color: #2563eb;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <div>
-            <h1>Attendance Dashboard</h1>
-            <p style="margin:0; color:#4b5563;">Welcome, {{ request.user.first_name|default:request.user.username }}</p>
-        </div>
-        <a href="{% url 'logout' %}" style="background:#ef4444; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Logout</a>
-    </div>
-    <div class="meta">
-        <div><strong>Registered Students:</strong> {{ total_students }}</div>
-        <div><strong>Latest Session:</strong> {% if has_session %}#{{ session_id }}{% else %}None{% endif %}</div>
-    </div>
+{% extends "base.html" %}
+{% load static %}
 
-    <table>
-        <thead>
-            <tr>
-                <th>Student</th>
-                <th>Status</th>
-                <th>Confidence</th>
-                <th>Detection Count</th>
-                <th>Confidence Bar</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in rows %}
-                <tr>
-                    <td>{{ row.name }}</td>
-                    <td>{{ row.status }}</td>
-                    <td>{{ row.confidence_score }}</td>
-                    <td>{{ row.detection_count }}</td>
-                    <td>
-                        <div style="width: 220px; background: #e5e7eb; border-radius: 999px; overflow: hidden;">
-                            <div style="width: {{ row.confidence_percent }}%; height: 12px; background: #2563eb;"></div>
-                        </div>
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="4">No student records yet.</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+{% block title %}Dashboard{% endblock %}
 
-    <a href="/">Back to Camera</a>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/dashboard.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol class="breadcrumbs-list">
+        <li class="breadcrumbs-item" aria-current="page">
+            <i data-lucide="layout-dashboard"></i> Dashboard
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <div class="page-header-text">
+        <h1>Dashboard</h1>
+        <p class="page-header-subtitle">Real-time overview of attendance, recognition, and academic activity.</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'index' %}" class="btn btn-primary"><i data-lucide="play"></i> Start Session</a>
+        <a href="{% url 'student_create' %}" class="btn btn-secondary"><i data-lucide="user-plus"></i> Add Student</a>
+        <a href="{% url 'course_create' %}" class="btn btn-outline"><i data-lucide="book-plus"></i> Create Course</a>
+    </div>
 </div>
-</body>
-</html>
+{% endblock %}
+
+{% block content %}
+<div class="kpi-grid">
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="users"></i></div></div><div class="stat-card-value">{{ kpis.total_students }}</div><div class="stat-card-label">Total Students</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--success"><i data-lucide="user-check"></i></div></div><div class="stat-card-value">{{ kpis.present_today }}</div><div class="stat-card-label">Present Today</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--danger"><i data-lucide="user-x"></i></div></div><div class="stat-card-value">{{ kpis.absent_today }}</div><div class="stat-card-label">Absent Today</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--success"><i data-lucide="percent"></i></div></div><div class="stat-card-value">{{ kpis.attendance_rate }}%</div><div class="stat-card-label">Attendance Rate</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="scan-face"></i></div></div><div class="stat-card-value">{{ kpis.recognition_accuracy }}%</div><div class="stat-card-label">Recognition Accuracy</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--warning"><i data-lucide="gauge"></i></div></div><div class="stat-card-value">{{ kpis.average_confidence }}%</div><div class="stat-card-label">Avg Confidence</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="book-open"></i></div></div><div class="stat-card-value">{{ kpis.courses }}</div><div class="stat-card-label">Courses</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--warning"><i data-lucide="radio"></i></div></div><div class="stat-card-value">{{ kpis.active_sessions }}</div><div class="stat-card-label">Active Sessions</div></div>
+</div>
+
+<div class="dashboard-grid-2">
+    <div class="card live-status-card {% if live_status.has_active %}live-status-card--active{% endif %}">
+        <div class="card-header"><div class="card-header-title"><div class="card-header-icon"><i data-lucide="radio"></i></div><h3>Live Session Status</h3></div>{% if live_status.has_active %}<span class="badge badge-danger">LIVE</span>{% else %}<span class="badge badge-neutral">Idle</span>{% endif %}</div>
+        <div class="card-body live-status-grid">
+            <div><span class="text-muted">Session</span><strong>{% if live_status.session_id %}#{{ live_status.session_id }}{% else %}—{% endif %}</strong></div>
+            <div><span class="text-muted">Teacher</span><strong>{{ live_status.teacher_name }}</strong></div>
+            <div><span class="text-muted">Course</span><strong>{{ live_status.course_name }}</strong></div>
+            <div><span class="text-muted">Students Detected</span><strong id="dashStudentsDetected">{{ live_status.students_detected }}</strong></div>
+            <div><span class="text-muted">Frames Processed</span><strong id="dashFramesProcessed">{{ live_status.frames_processed }}</strong></div>
+            <div><span class="text-muted">Timer</span><strong id="dashSessionTimer">{% if live_status.has_active %}Running{% else %}—{% endif %}</strong></div>
+        </div>
+        {% if live_status.has_active %}<div class="card-footer"><a href="{% url 'index' %}" class="btn btn-sm btn-primary">Go to Attendance</a></div>{% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header"><div class="card-header-title"><div class="card-header-icon"><i data-lucide="bell"></i></div><h3>Alerts</h3></div></div>
+        <div class="card-body alerts-list">
+            {% for alert in alerts %}
+            <div class="alert alert-{{ alert.type }}"><span class="alert-icon"><i data-lucide="{% if alert.type == 'danger' %}alert-circle{% elif alert.type == 'warning' %}alert-triangle{% else %}info{% endif %}"></i></span><div class="alert-content"><div class="alert-title">{{ alert.title }}</div>{{ alert.message }}</div></div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-charts-grid">
+    <div class="card"><div class="card-header"><h3>Weekly Attendance</h3></div><div class="card-body"><canvas id="chartWeekly" height="220"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>Monthly Attendance</h3></div><div class="card-body"><canvas id="chartMonthly" height="220"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>Attendance by Course</h3></div><div class="card-body"><canvas id="chartCourse" height="220"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>Recognition Confidence</h3></div><div class="card-body"><canvas id="chartConfidence" height="220"></canvas></div></div>
+</div>
+
+<div class="card mb-6"><div class="card-header"><h3>Attendance Trends</h3></div><div class="card-body"><canvas id="chartTrends" height="120"></canvas></div></div>
+
+<div class="dashboard-grid-3">
+    <div class="card">
+        <div class="card-header"><h3>Recent Sessions</h3></div>
+        <div class="card-body activity-list">
+            {% for s in recent_sessions %}
+            <div class="activity-item"><div class="activity-icon"><i data-lucide="calendar"></i></div><div><strong>Session #{{ s.id }}</strong><p class="text-muted">{{ s.end_time|date:"M d, H:i" }}{% if s.course %} · {{ s.course.code }}{% endif %}</p></div></div>
+            {% empty %}<p class="text-muted">No sessions yet.</p>{% endfor %}
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3>Recent Recognitions</h3></div>
+        <div class="card-body activity-list">
+            {% for d in recent_detections %}
+            <div class="activity-item"><div class="activity-icon"><i data-lucide="scan-face"></i></div><div><strong>{{ d.student.name }}</strong><p class="text-muted">{{ d.timestamp|date:"M d, H:i:s" }} · Session #{{ d.session_id }}</p></div></div>
+            {% empty %}<p class="text-muted">No recognitions yet.</p>{% endfor %}
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3>Recent Attendance</h3></div>
+        <div class="card-body activity-list">
+            {% for s in recent_summaries %}
+            <div class="activity-item"><div class="activity-icon"><i data-lucide="check-circle"></i></div><div><strong>{{ s.student.name }}</strong><p class="text-muted">{{ s.status }} · {{ s.confidence_score|floatformat:2 }} conf.</p></div></div>
+            {% empty %}<p class="text-muted">No summaries yet.</p>{% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block extra_js %}
+{{ chart_data|json_script:"dashboard-chart-data" }}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

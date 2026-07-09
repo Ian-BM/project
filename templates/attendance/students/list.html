@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Students{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs"><ol class="breadcrumbs-list">
+    <li class="breadcrumbs-item"><a href="{% url 'dashboard' %}">Dashboard</a><span class="breadcrumbs-separator"><i data-lucide="chevron-right"></i></span></li>
+    <li class="breadcrumbs-item" aria-current="page">Students</li>
+</ol></nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <div class="page-header-text"><h1>Students</h1><p class="page-header-subtitle">{{ total_count }} registered students</p></div>
+    <div class="page-header-actions">
+        <a href="{% url 'student_export' %}" class="btn btn-secondary"><i data-lucide="download"></i> Export</a>
+        <a href="{% url 'student_create' %}" class="btn btn-primary"><i data-lucide="user-plus"></i> Add Student</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<form class="filter-bar" method="get">
+    <div class="table-search" style="max-width:280px;"><span class="table-search-icon"><i data-lucide="search"></i></span>
+        <input type="search" name="q" value="{{ filters.q }}" placeholder="Search name, ID, email..."></div>
+    <select name="department" class="form-select" style="width:auto;"><option value="">All Departments</option>{% for d in departments %}<option value="{{ d.id }}" {% if filters.department == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>{% endfor %}</select>
+    <select name="course" class="form-select" style="width:auto;"><option value="">All Courses</option>{% for c in courses %}<option value="{{ c.id }}" {% if filters.course == c.id|stringformat:"s" %}selected{% endif %}>{{ c.code }}</option>{% endfor %}</select>
+    <select name="status" class="form-select" style="width:auto;"><option value="">All Status</option><option value="active" {% if filters.status == 'active' %}selected{% endif %}>Active</option><option value="inactive" {% if filters.status == 'inactive' %}selected{% endif %}>Inactive</option></select>
+    <select name="risk" class="form-select" style="width:auto;"><option value="">All Risk</option><option value="low" {% if filters.risk == 'low' %}selected{% endif %}>Low</option><option value="medium" {% if filters.risk == 'medium' %}selected{% endif %}>Medium</option><option value="high" {% if filters.risk == 'high' %}selected{% endif %}>High</option></select>
+    <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+</form>
+
+<div class="card">
+    <div class="table-wrapper" style="border:none;">
+        <table class="data-table">
+            <thead><tr>
+                <th>Photo</th><th>ID</th><th>Name</th><th>Department</th><th>Course</th>
+                <th>Attendance %</th><th>Grade</th><th>Recognition</th><th>Risk</th><th>Actions</th>
+            </tr></thead>
+            <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{% if row.photo %}<img src="{{ row.photo.image.url }}" class="student-photo-thumb" alt="">{% else %}<span class="avatar avatar-sm">{{ row.student.name|slice:":1"|upper }}</span>{% endif %}</td>
+                <td>{{ row.registration }}</td>
+                <td><a href="{% url 'student_detail' row.student.pk %}" class="font-medium">{{ row.student.name }}</a></td>
+                <td>{{ row.department.name|default:"—" }}</td>
+                <td>{{ row.course.code|default:"—" }}</td>
+                <td>{{ row.attendance_percent }}%</td>
+                <td>{{ row.grade|default:"—" }}</td>
+                <td><span class="badge badge-{% if row.recognition_status == 'encoded' %}success{% elif row.recognition_status == 'pending' %}warning{% else %}danger{% endif %}">{{ row.recognition_status }}</span></td>
+                <td><span class="badge badge-{% if row.risk_level == 'high' %}danger{% elif row.risk_level == 'medium' %}warning{% else %}neutral{% endif %}">{{ row.risk_level }}</span></td>
+                <td><a href="{% url 'student_detail' row.student.pk %}" class="btn btn-sm btn-ghost">View</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="10"><div class="empty-state"><h3>No students found</h3><a href="{% url 'student_create' %}" class="btn btn-primary">Add Student</a></div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% if page_obj.has_other_pages %}
+        <div class="table-pagination">
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <div class="pagination-controls">
+                {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="pagination-btn">‹</a>{% endif %}
+                <span class="pagination-btn active">{{ page_obj.number }}</span>
+                {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pagination-btn">›</a>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

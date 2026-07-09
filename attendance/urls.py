@@ -1,6 +1,9 @@
 from django.urls import path
 
 from .views import (
+    api_dashboard_charts,
+    api_live_attendance,
+    api_session_status,
     dashboard,
     end_session_view,
     index,
@@ -9,6 +12,24 @@ from .views import (
     register_view,
     recognize_view,
     start_session_view,
+)
+from .views_courses import (
+    course_create,
+    course_delete,
+    course_detail,
+    course_edit,
+    course_enroll,
+    course_list,
+    course_unenroll,
+)
+from .views_students import (
+    api_search,
+    student_create,
+    student_detail,
+    student_edit,
+    student_export,
+    student_list,
+    student_upload_images,
 )
 
 urlpatterns = [
@@ -20,4 +41,21 @@ urlpatterns = [
     path("recognize/", recognize_view, name="recognize"),
     path("start-session/", start_session_view, name="start_session"),
     path("end-session/", end_session_view, name="end_session"),
+    path("api/session/status/", api_session_status, name="api_session_status"),
+    path("api/attendance/live/", api_live_attendance, name="api_live_attendance"),
+    path("api/dashboard/charts/", api_dashboard_charts, name="api_dashboard_charts"),
+    path("api/search/", api_search, name="api_search"),
+    path("students/", student_list, name="student_list"),
+    path("students/add/", student_create, name="student_create"),
+    path("students/export/", student_export, name="student_export"),
+    path("students/<int:pk>/", student_detail, name="student_detail"),
+    path("students/<int:pk>/edit/", student_edit, name="student_edit"),
+    path("students/<int:pk>/upload/", student_upload_images, name="student_upload_images"),
+    path("courses/", course_list, name="course_list"),
+    path("courses/add/", course_create, name="course_create"),
+    path("courses/<int:pk>/", course_detail, name="course_detail"),
+    path("courses/<int:pk>/edit/", course_edit, name="course_edit"),
+    path("courses/<int:pk>/delete/", course_delete, name="course_delete"),
+    path("courses/<int:pk>/enroll/", course_enroll, name="course_enroll"),
+    path("courses/<int:pk>/unenroll/<int:student_id>/", course_unenroll, name="course_unenroll"),
 ]

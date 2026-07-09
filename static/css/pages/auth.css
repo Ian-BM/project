@@ -1,0 +1,28 @@
+.auth-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-8);
+}
+
+.auth-card h2 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--space-6);
+}
+
+.auth-card .btn {
+  width: 100%;
+  padding: var(--space-3);
+}
+
+[data-theme="dark"] .auth-layout {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.auth-theme-toggle {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 10;
+}

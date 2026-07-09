@@ -1,0 +1,35 @@
+<aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="sidebar-header">
+        <div class="sidebar-logo"><i data-lucide="graduation-cap"></i></div>
+        <div class="sidebar-brand">
+            <span class="sidebar-brand-name">Univera</span>
+            <span class="sidebar-brand-tagline">Attendance System</span>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Main</div>
+        <ul class="sidebar-nav-list">
+            <li><a href="{% url 'dashboard' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-nav-label">Dashboard</span></a></li>
+            <li><a href="{% url 'index' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'index' %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="scan-face"></i></span><span class="sidebar-nav-label">Attendance</span></a></li>
+            <li><a href="{% url 'student_list' %}" class="sidebar-nav-item {% if 'student' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="users"></i></span><span class="sidebar-nav-label">Students</span></a></li>
+            <li><a href="{% url 'course_list' %}" class="sidebar-nav-item {% if 'course' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="book-open"></i></span><span class="sidebar-nav-label">Courses</span></a></li>
+            <li><a href="{% url 'index' %}" class="sidebar-nav-item sidebar-nav-item--placeholder" data-nav="sessions"><span class="sidebar-nav-icon"><i data-lucide="calendar-clock"></i></span><span class="sidebar-nav-label">Sessions</span></a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Analytics</div>
+        <ul class="sidebar-nav-list">
+            <li><a href="#" class="sidebar-nav-item sidebar-nav-item--placeholder" data-nav="performance"><span class="sidebar-nav-icon"><i data-lucide="trending-up"></i></span><span class="sidebar-nav-label">Performance</span></a></li>
+            <li><a href="#" class="sidebar-nav-item sidebar-nav-item--placeholder" data-nav="confidence"><span class="sidebar-nav-icon"><i data-lucide="gauge"></i></span><span class="sidebar-nav-label">Confidence</span></a></li>
+            <li><a href="#" class="sidebar-nav-item sidebar-nav-item--placeholder" data-nav="reports"><span class="sidebar-nav-icon"><i data-lucide="file-text"></i></span><span class="sidebar-nav-label">Reports</span></a></li>
+            <li><a href="{% url 'dashboard' %}" class="sidebar-nav-item"><span class="sidebar-nav-icon"><i data-lucide="bar-chart-3"></i></span><span class="sidebar-nav-label">Analytics</span></a></li>
+        </ul>
+
+        <div class="sidebar-section-label">Account</div>
+        <ul class="sidebar-nav-list">
+            <li><a href="#" class="sidebar-nav-item sidebar-nav-item--placeholder" data-nav="profile"><span class="sidebar-nav-icon"><i data-lucide="user"></i></span><span class="sidebar-nav-label">Profile</span></a></li>
+            <li><a href="#" class="sidebar-nav-item sidebar-nav-item--placeholder" data-nav="settings"><span class="sidebar-nav-icon"><i data-lucide="settings"></i></span><span class="sidebar-nav-label">Settings</span></a></li>
+            <li><a href="{% url 'logout' %}" class="sidebar-nav-item"><span class="sidebar-nav-icon"><i data-lucide="log-out"></i></span><span class="sidebar-nav-label">Logout</span></a></li>
+        </ul>
+    </nav>
+</aside>

@@ -7,55 +7,32 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
-from .models import AttendanceSummary, Detection, Session, Student
+from .models import AttendanceSummary, Course, Detection, Session, Student
+from .services.dashboard_stats import build_dashboard_context, get_live_attendance_rows
+from .services.recognition_details import recognize_faces_detailed
+
+
+def _active_session(user):
+    return Session.objects.filter(is_active=True, teacher=user).order_by("-start_time").first()
 
 
 @login_required
 def index(request):
-    return render(request, "attendance/index.html")
+    courses = Course.objects.filter(Q(teacher=request.user) | Q(teacher__isnull=True)).distinct().order_by("name")
+    return render(request, "attendance/index.html", {"courses": courses})
 
 
 @login_required
 def dashboard(request):
-    latest_session = Session.objects.filter(is_active=False, teacher=request.user).order_by("-end_time").first()
-    students = Student.objects.all().order_by("name")
-    rows = []
-
-    for student in students:
-        summary = None
-        detection_count = 0
-        if latest_session:
-            summary = AttendanceSummary.objects.filter(
-                student=student, session=latest_session
-            ).first()
-            detection_count = Detection.objects.filter(
-                student=student, session=latest_session
-            ).count()
-
-        rows.append(
-            {
-                "name": student.name,
-                "status": summary.status if summary else AttendanceSummary.STATUS_ABSENT,
-                "confidence_score": round(summary.confidence_score, 4) if summary else 0.0,
-                "detection_count": detection_count,
-                "confidence_percent": round((summary.confidence_score if summary else 0.0) * 100, 2),
-            }
-        )
-
-    context = {
-        "rows": rows,
-        "total_students": students.count(),
-        "has_session": bool(latest_session),
-        "session_id": latest_session.id if latest_session else None,
-    }
-    return render(request, "attendance/dashboard.html", context)
+    ctx = build_dashboard_context(request.user)
+    return render(request, "attendance/dashboard.html", ctx)
 
 
 def register_view(request):
@@ -117,6 +94,9 @@ def recognize_view(request):
         return JsonResponse({"students": []})
     Session.objects.filter(id=active_session.id).update(total_frames=F("total_frames") + 1)
     active_session.refresh_from_db(fields=["total_frames"])
+    face_details = []
+    image_width = 0
+    image_height = 0
 
     try:
         payload = json.loads(request.body.decode("utf-8"))
@@ -137,6 +117,10 @@ def recognize_view(request):
         from AI.recognize import recognize_faces
 
         detected_names = recognize_faces(str(temp_image_path))
+        face_details = recognize_faces_detailed(str(temp_image_path))
+        import face_recognition as fr
+        img_shape = fr.load_image_file(str(temp_image_path)).shape
+        image_height, image_width = int(img_shape[0]), int(img_shape[1])
     except FileNotFoundError as exc:
         return JsonResponse({"error": str(exc), "students": []}, status=500)
     except Exception as exc:
@@ -160,7 +144,15 @@ def recognize_view(request):
         Detection.objects.create(student=student, session=active_session, timestamp=now)
         seen_names.add(student.name)
 
-    return JsonResponse({"students": sorted(seen_names)})
+    return JsonResponse({
+        "students": sorted(seen_names),
+        "faces": face_details,
+        "frames_processed": active_session.total_frames,
+        "session_id": active_session.id,
+        "unknown_count": sum(1 for f in face_details if f.get("name") == "Unknown"),
+        "image_width": image_width if "image_width" in locals() else 0,
+        "image_height": image_height if "image_height" in locals() else 0,
+    })
 
 
 def _compute_summary_for_session(session):
@@ -249,17 +241,35 @@ def start_session_view(request):
                 "session_id": active_session.id,
                 "is_active": True,
                 "message": "Resuming existing active session.",
+                "course_id": active_session.course_id,
+                "course_name": active_session.course.name if active_session.course else None,
             }
         )
+
+    course = None
+    try:
+        if request.body:
+            payload = json.loads(request.body.decode("utf-8"))
+            course_id = payload.get("course_id")
+            if course_id:
+                course = Course.objects.filter(pk=course_id).first()
+    except (json.JSONDecodeError, ValueError):
+        pass
 
     now = timezone.now()
     session = Session.objects.create(
         teacher=request.user,
+        course=course,
         date=now.date(),
         start_time=now,
         is_active=True,
     )
-    return JsonResponse({"session_id": session.id, "is_active": True})
+    return JsonResponse({
+        "session_id": session.id,
+        "is_active": True,
+        "course_id": session.course_id,
+        "course_name": session.course.name if session.course else None,
+    })
 
 
 @csrf_exempt
@@ -277,3 +287,37 @@ def end_session_view(request):
     _compute_summary_for_session(session)
 
     return JsonResponse({"session_id": session.id, "is_active": False})
+
+
+@login_required
+@require_GET
+def api_session_status(request):
+    session = _active_session(request.user)
+    if not session:
+        return JsonResponse({"active": False})
+    detected = Detection.objects.filter(session=session).values("student_id").distinct().count()
+    return JsonResponse({
+        "active": True,
+        "session_id": session.id,
+        "teacher": request.user.get_full_name() or request.user.username,
+        "course": session.course.name if session.course else "—",
+        "course_code": session.course.code if session.course else "",
+        "frames_processed": session.total_frames,
+        "students_detected": detected,
+        "started_at": session.start_time.isoformat(),
+    })
+
+
+@login_required
+@require_GET
+def api_live_attendance(request):
+    session = _active_session(request.user)
+    rows = get_live_attendance_rows(session)
+    return JsonResponse({"rows": rows, "active": bool(session)})
+
+
+@login_required
+@require_GET
+def api_dashboard_charts(request):
+    from .services.dashboard_stats import build_chart_data
+    return JsonResponse(build_chart_data(request.user))

@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Univera{% endblock %} | Attendance System</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    {% block extra_css %}{% endblock %}
+
+    <script>
+        (function () {
+            var theme = localStorage.getItem("univera-theme");
+            if (theme) document.documentElement.setAttribute("data-theme", theme);
+        })();
+    </script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}app-layout{% endblock %}">
+
+{% block page_layout %}
+<div class="app-wrapper">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    {% include "partials/sidebar.html" %}
+
+    <div class="app-main">
+        {% include "partials/topnav.html" %}
+
+        <main class="page-content" id="main-content">
+            {% block breadcrumbs %}{% endblock %}
+            {% block page_header %}{% endblock %}
+            {% block content %}{% endblock %}
+        </main>
+
+        {% include "partials/footer.html" %}
+    </div>
+</div>
+{% endblock %}
+
+<div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 data-modal-title>Confirm</h3>
+            <button class="modal-close" type="button" data-modal-close aria-label="Close">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+        <div class="modal-body" data-modal-body></div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="button" data-modal-confirm>Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="{% static 'js/theme.js' %}"></script>
+<script src="{% static 'js/sidebar.js' %}"></script>
+<script src="{% static 'js/dropdowns.js' %}"></script>
+<script src="{% static 'js/search.js' %}"></script>
+<script src="{% static 'js/toasts.js' %}"></script>
+<script src="{% static 'js/modals.js' %}"></script>
+<script src="{% static 'js/clock.js' %}"></script>
+<script src="{% static 'js/live-session.js' %}"></script>
+{% block extra_js %}{% endblock %}
+<script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

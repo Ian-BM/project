@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ student.name }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs"><ol class="breadcrumbs-list">
+    <li class="breadcrumbs-item"><a href="{% url 'student_list' %}">Students</a><span class="breadcrumbs-separator"><i data-lucide="chevron-right"></i></span></li>
+    <li class="breadcrumbs-item" aria-current="page">{{ student.name }}</li>
+</ol></nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <div class="page-header-text"><h1>{{ student.name }}</h1><p class="page-header-subtitle">{{ profile.registration_number }}</p></div>
+    <div class="page-header-actions">
+        <a href="{% url 'student_edit' student.pk %}" class="btn btn-secondary"><i data-lucide="edit"></i> Edit</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if encoding_msg %}<div class="encoding-notice"><strong>Face Encoding Update Required</strong><br>{{ encoding_msg }}</div>{% endif %}
+
+<div class="profile-grid">
+    <div class="profile-sidebar">
+        <div class="card"><div class="card-body" style="text-align:center;">
+            {% with photo=student.images.first %}
+            {% if photo %}<img src="{{ photo.image.url }}" class="profile-photo-lg" style="border-radius:50%;width:120px;height:120px;" alt="">
+            {% else %}<div class="profile-photo-lg">{{ student.name|slice:":1"|upper }}</div>{% endif %}
+            {% endwith %}
+            <h3 class="mt-4">{{ student.name }}</h3>
+            <p class="text-muted">{{ profile.email|default:"No email" }}</p>
+            <div class="mt-4" style="display:flex;flex-direction:column;gap:0.5rem;">
+                <span class="badge badge-{% if profile.recognition_status == 'encoded' %}success{% else %}warning{% endif %}">{{ profile.get_recognition_status_display }}</span>
+                <span class="badge badge-{% if profile.risk_level == 'high' %}danger{% else %}neutral{% endif %}">Risk: {{ profile.get_risk_level_display }}</span>
+            </div>
+        </div></div>
+        <div class="card"><div class="card-header"><h3>Upload Photos</h3></div><div class="card-body">
+            <form method="post" action="{% url 'student_upload_images' student.pk %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" name="photos" class="form-input" accept="image/jpeg,image/png" multiple>
+                <button class="btn btn-primary btn-sm mt-4" type="submit" style="width:100%;">Upload to Dataset</button>
+            </form>
+            <p class="form-hint mt-2">Photos saved to dataset/{{ student.name|lower }}/. Run encode_faces.py manually.</p>
+        </div></div>
+    </div>
+
+    <div>
+        <div class="stat-grid" style="margin-bottom:1.5rem;">
+            <div class="stat-card"><div class="stat-card-value">{{ attendance_percent }}%</div><div class="stat-card-label">Attendance Rate</div></div>
+            <div class="stat-card"><div class="stat-card-value">{{ profile.average_grade|default:"—" }}</div><div class="stat-card-label">Average Grade</div></div>
+            <div class="stat-card"><div class="stat-card-value">{{ detections|length }}</div><div class="stat-card-label">Recognitions</div></div>
+        </div>
+
+        <div class="card mb-4"><div class="card-header"><h3>Courses</h3></div><div class="card-body">
+            {% for e in enrollments %}<span class="badge badge-primary" style="margin:0.25rem;">{{ e.course.code }}</span>{% empty %}<p class="text-muted">Not enrolled in any course.</p>{% endfor %}
+        </div></div>
+
+        <div class="card mb-4"><div class="card-header"><h3>Attendance History</h3></div>
+            <table class="data-table"><thead><tr><th>Session</th><th>Status</th><th>Confidence</th></tr></thead>
+            <tbody>{% for s in summaries %}<tr><td>#{{ s.session_id }}</td><td><span class="status-chip status-chip--{{ s.status|lower }}">{{ s.status }}</span></td><td>{{ s.confidence_score|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="3" class="text-muted">No history.</td></tr>{% endfor %}</tbody></table>
+        </div>
+
+        <div class="card"><div class="card-header"><h3>Recognition History</h3></div>
+            <table class="data-table"><thead><tr><th>Time</th><th>Session</th></tr></thead>
+            <tbody>{% for d in detections %}<tr><td>{{ d.timestamp|date:"M d, H:i:s" }}</td><td>#{{ d.session_id }}</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">No detections.</td></tr>{% endfor %}</tbody></table>
+        </div>
+
+        {% if profile.notes %}<div class="card mt-4"><div class="card-header"><h3>Teacher Notes</h3></div><div class="card-body">{{ profile.notes }}</div></div>{% endif %}
+    </div>
+</div>
+{% endblock %}

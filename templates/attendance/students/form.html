@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Add{% endif %} Student{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs"><ol class="breadcrumbs-list">
+    <li class="breadcrumbs-item"><a href="{% url 'dashboard' %}">Dashboard</a><span class="breadcrumbs-separator"><i data-lucide="chevron-right"></i></span></li>
+    <li class="breadcrumbs-item"><a href="{% url 'student_list' %}">Students</a><span class="breadcrumbs-separator"><i data-lucide="chevron-right"></i></span></li>
+    <li class="breadcrumbs-item" aria-current="page">Add Student</li>
+</ol></nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="page-header"><div class="page-header-text"><h1>Add Student</h1><p class="page-header-subtitle">Register a new student and upload face photos for recognition.</p></div></div>
+{% endblock %}
+
+{% block content %}
+{% if encoding_msg %}<div class="encoding-notice"><strong>Face Encoding Update Required</strong><br>{{ encoding_msg }}</div>{% endif %}
+
+<div class="card" style="max-width:720px;">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+            {% if field.name != 'photos' %}
+            <div class="form-group">
+                <label class="form-label{% if field.field.required %} form-label-required{% endif %}" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="form-error">{{ field.errors.0 }}</div>{% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+            <div class="form-group">
+                <label class="form-label">Face Photos (multiple)</label>
+                <input type="file" name="photos" class="form-input" accept="image/jpeg,image/png,image/jpg" multiple>
+                <div class="form-hint">Upload multiple clear face images. JPG/PNG only, max 5MB each.</div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Create Student</button>
+                <a href="{% url 'student_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

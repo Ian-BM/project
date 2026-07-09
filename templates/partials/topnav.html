@@ -1,0 +1,151 @@
+<header class="topbar">
+    <div class="topbar-left">
+        <button class="topbar-hamburger" id="sidebarToggle" type="button" aria-label="Toggle navigation">
+            <i data-lucide="menu"></i>
+        </button>
+
+        <div class="global-search">
+            <div class="global-search-input-wrap">
+                <span class="global-search-icon"><i data-lucide="search"></i></span>
+                <input
+                    type="search"
+                    id="globalSearch"
+                    class="global-search-input"
+                    placeholder="Search students, courses, sessions..."
+                    autocomplete="off"
+                    aria-label="Global search"
+                >
+                <span class="global-search-shortcut">⌘K</span>
+            </div>
+            <div class="global-search-dropdown" id="globalSearchDropdown">
+                <a href="{% url 'dashboard' %}" class="global-search-result">
+                    <span class="global-search-result-icon"><i data-lucide="layout-dashboard"></i></span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'index' %}" class="global-search-result">
+                    <span class="global-search-result-icon"><i data-lucide="scan-face"></i></span>
+                    <span>Face Attendance</span>
+                </a>
+                <a href="{% url 'student_list' %}" class="global-search-result">
+                    <span class="global-search-result-icon"><i data-lucide="users"></i></span>
+                    <span>Students</span>
+                </a>
+                <a href="{% url 'course_list' %}" class="global-search-result">
+                    <span class="global-search-result-icon"><i data-lucide="book-open"></i></span>
+                    <span>Courses</span>
+                </a>
+                <div class="global-search-result sidebar-nav-item--placeholder" style="cursor:pointer;">
+                    <span class="global-search-result-icon"><i data-lucide="calendar-clock"></i></span>
+                    <span>Sessions</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="topbar-right">
+        <div class="live-session-badge" id="liveSessionBadge">
+            <span class="live-session-dot"></span>
+            <span data-live-session-label>Live Session</span>
+        </div>
+
+        <span class="topbar-clock hide-mobile" id="topbarClock" aria-live="off">--:--:--</span>
+
+        <button class="topbar-btn" type="button" data-theme-toggle aria-label="Toggle theme">
+            <span data-theme-icon-light><i data-lucide="moon"></i></span>
+            <span data-theme-icon-dark class="hidden"><i data-lucide="sun"></i></span>
+        </button>
+
+        <div class="dropdown">
+            <button
+                class="topbar-btn"
+                type="button"
+                data-dropdown-toggle="notificationsDropdown"
+                aria-label="Notifications"
+                aria-expanded="false"
+            >
+                <i data-lucide="bell"></i>
+                <span class="topbar-badge">3</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu--notifications" id="notificationsDropdown">
+                <div class="dropdown-header">
+                    <h4>Notifications</h4>
+                    <span class="badge badge-primary">3 unread</span>
+                </div>
+                <div class="dropdown-body">
+                    <div class="notification-item unread">
+                        <div class="notification-icon notification-icon--success">
+                            <i data-lucide="check-circle"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">Session completed</div>
+                            <div class="notification-text">Attendance summary computed for the latest session.</div>
+                            <div class="notification-time">2 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon notification-icon--info">
+                            <i data-lucide="scan-face"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">New detection</div>
+                            <div class="notification-text">Student recognized during active attendance session.</div>
+                            <div class="notification-time">15 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon notification-icon--warning">
+                            <i data-lucide="alert-triangle"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">Low confidence alert</div>
+                            <div class="notification-text">A student received partial attendance status.</div>
+                            <div class="notification-time">1 hour ago</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dropdown-footer">
+                    <a href="#">View all notifications</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <button
+                class="topbar-profile"
+                type="button"
+                data-dropdown-toggle="profileDropdown"
+                aria-label="User menu"
+                aria-expanded="false"
+            >
+                <div class="topbar-profile-info hide-mobile">
+                    <div class="topbar-profile-name">{{ request.user.first_name|default:request.user.username }}</div>
+                    <div class="topbar-profile-role">Teacher</div>
+                </div>
+                <span class="avatar avatar-md">
+                    {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+                </span>
+            </button>
+            <div class="dropdown-menu" id="profileDropdown">
+                <div class="dropdown-header">
+                    <div>
+                        <div class="font-semibold">{{ request.user.first_name|default:request.user.username }}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">{{ request.user.email }}</div>
+                    </div>
+                </div>
+                <a href="#" class="dropdown-item sidebar-nav-item--placeholder">
+                    <i data-lucide="user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="#" class="dropdown-item sidebar-nav-item--placeholder">
+                    <i data-lucide="settings"></i>
+                    <span>Settings</span>
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="{% url 'logout' %}" class="dropdown-item dropdown-item--danger">
+                    <i data-lucide="log-out"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
