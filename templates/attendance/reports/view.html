@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+{% block page_header %}
+<div class="page-header">
+  <div class="page-header-text"><h1>{{ title }}</h1><p class="page-header-subtitle">Filter and export report data</p></div>
+  <div class="page-header-actions">
+    <a class="btn btn-secondary" href="?{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}export=csv">CSV</a>
+    <a class="btn btn-secondary" href="?{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}export=excel">Excel</a>
+    <a class="btn btn-secondary" href="{% url 'report_print' report_type %}?{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}" target="_blank">Print / PDF</a>
+  </div>
+</div>
+{% endblock %}
+{% block content %}
+<form class="filter-bar" method="get">
+  <select name="programme" class="form-select" style="width:auto;"><option value="">Programme</option>{% for p in programmes %}<option value="{{ p.id }}" {% if filters.programme == p.id|stringformat:"s" %}selected{% endif %}>{{ p.code }}</option>{% endfor %}</select>
+  <select name="module" class="form-select" style="width:auto;"><option value="">Module</option>{% for m in modules %}<option value="{{ m.id }}" {% if filters.module == m.id|stringformat:"s" %}selected{% endif %}>{{ m.code }}</option>{% endfor %}</select>
+  <select name="teacher" class="form-select" style="width:auto;"><option value="">Teacher</option>{% for t in teachers %}<option value="{{ t.id }}" {% if filters.teacher == t.id|stringformat:"s" %}selected{% endif %}>{{ t.get_full_name|default:t.username }}</option>{% endfor %}</select>
+  <input type="date" name="date_from" value="{{ filters.date_from }}" class="form-input" style="width:auto;">
+  <input type="date" name="date_to" value="{{ filters.date_to }}" class="form-input" style="width:auto;">
+  <input type="text" name="semester" value="{{ filters.semester }}" class="form-input" placeholder="Semester" style="width:120px;">
+  <input type="text" name="academic_year" value="{{ filters.academic_year }}" class="form-input" placeholder="Year" style="width:100px;">
+  <button class="btn btn-primary btn-sm" type="submit">Apply</button>
+</form>
+<div class="card"><div class="table-wrapper" style="border:none;overflow:auto;">
+<table class="data-table">
+<thead><tr>{% for c in columns %}<th>{{ c }}</th>{% empty %}<th>No columns</th>{% endfor %}</tr></thead>
+<tbody>
+{% for row in rows %}
+<tr>{% for key, value in row.items %}<td>{{ value }}</td>{% endfor %}</tr>
+{% empty %}
+<tr><td colspan="{{ columns|length|default:1 }}" class="text-muted">No rows for this report.</td></tr>
+{% endfor %}
+</tbody></table>
+</div></div>
+{% endblock %}

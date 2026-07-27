@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Analytics{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+{% block page_header %}
+<div class="page-header">
+  <div class="page-header-text"><h1>Analytics</h1><p class="page-header-subtitle">Trends, leaderboards and recognition health</p></div>
+  <div class="page-header-actions"><a href="{% url 'notifications_list' %}" class="btn btn-secondary">Notifications {% if kpis.unread_notifications %}({{ kpis.unread_notifications }}){% endif %}</a></div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="stat-grid mb-6">
+  <div class="stat-card"><div class="stat-card-value">{{ kpis.students }}</div><div class="stat-card-label">Students</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ kpis.programmes }}</div><div class="stat-card-label">Programmes</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ kpis.modules }}</div><div class="stat-card-label">Modules</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ kpis.sessions }}</div><div class="stat-card-label">Sessions</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ kpis.detections }}</div><div class="stat-card-label">Recognitions</div></div>
+</div>
+
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Attendance Trends</h3></div><div class="card-body"><canvas id="attTrend" height="200"></canvas></div></div>
+  <div class="card"><div class="card-header"><h3>Confidence Trends</h3></div><div class="card-body"><canvas id="confTrend" height="200"></canvas></div></div>
+</div>
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Recognition Trends</h3></div><div class="card-body"><canvas id="recTrend" height="200"></canvas></div></div>
+  <div class="card"><div class="card-header"><h3>Programme Statistics</h3></div><div class="card-body"><canvas id="progChart" height="200"></canvas></div></div>
+</div>
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Module Statistics</h3></div><div class="card-body"><canvas id="modChart" height="200"></canvas></div></div>
+  <div class="card"><div class="card-header"><h3>Attendance vs Performance</h3></div><div class="card-body"><canvas id="corrChart" height="200"></canvas></div></div>
+</div>
+
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Top Performing Students</h3></div>
+    <table class="data-table"><thead><tr><th>Student</th><th>Perf %</th></tr></thead>
+    <tbody>{% for r in leaders.top_performance %}<tr><td>{{ r.student.name }}</td><td>{{ r.performance }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="card"><div class="card-header"><h3>Highest Attendance</h3></div>
+    <table class="data-table"><thead><tr><th>Student</th><th>%</th></tr></thead>
+    <tbody>{% for r in leaders.highest_attendance %}<tr><td>{{ r.student.name }}</td><td>{{ r.attendance }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+</div>
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Lowest Attendance</h3></div>
+    <table class="data-table"><thead><tr><th>Student</th><th>%</th></tr></thead>
+    <tbody>{% for r in leaders.lowest_attendance %}<tr><td>{{ r.student.name }}</td><td>{{ r.attendance }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="card"><div class="card-header"><h3>Best Recognition</h3></div>
+    <table class="data-table"><thead><tr><th>Student</th><th>Conf %</th></tr></thead>
+    <tbody>{% for r in leaders.best_recognition %}<tr><td>{{ r.student.name }}</td><td>{{ r.confidence }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+</div>
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Lowest Confidence</h3></div>
+    <table class="data-table"><thead><tr><th>Student</th><th>%</th></tr></thead>
+    <tbody>{% for r in leaders.lowest_confidence %}<tr><td>{{ r.student.name }}</td><td>{{ r.confidence }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="card"><div class="card-header"><h3>Best Modules</h3></div>
+    <table class="data-table"><thead><tr><th>Module</th><th>Att %</th></tr></thead>
+    <tbody>{% for r in leaders.best_modules %}<tr><td>{{ r.module.code }}</td><td>{{ r.attendance_percent }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+</div>
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Best Programmes</h3></div>
+    <table class="data-table"><thead><tr><th>Programme</th><th>Att %</th></tr></thead>
+    <tbody>{% for r in leaders.best_programmes %}<tr><td>{{ r.programme.code }}</td><td>{{ r.attendance_percent }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="card"><div class="card-header"><h3>AI Insights</h3></div><div class="card-body activity-list">
+    {% for i in insights %}<div class="activity-item"><strong>{{ i.title }}</strong><p class="text-muted">{{ i.message }}</p></div>{% empty %}<p class="text-muted">No insights.</p>{% endfor %}
+  </div></div>
+</div>
+
+<div class="card"><div class="card-header"><h3>Attendance Heatmap (relative activity)</h3></div><div class="card-body">
+  <div style="display:grid;gap:4px;">
+  {% for row in heatmap %}
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:4px;">
+    {% for cell in row %}<div style="height:28px;border-radius:4px;background:#2563eb;opacity:{% if cell > 15 %}1{% elif cell > 8 %}0.65{% elif cell > 0 %}0.35{% else %}0.12{% endif %};" title="{{ cell }}"></div>{% endfor %}
+  </div>
+  {% endfor %}
+  </div>
+</div></div>
+
+{{ chart_data|json_script:"analytics-chart-data" }}
+{{ correlation|json_script:"analytics-correlation" }}
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  var d = JSON.parse(document.getElementById('analytics-chart-data').textContent);
+  var corr = JSON.parse(document.getElementById('analytics-correlation').textContent);
+  new Chart(document.getElementById('attTrend'), {type:'area' in Chart.defaults ? 'line' : 'line', data:{labels:d.attendance_trends.labels, datasets:[{label:'Present', data:d.attendance_trends.values, borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,.15)', fill:true, tension:.3}]}});
+  new Chart(document.getElementById('confTrend'), {type:'line', data:{labels:d.confidence_trends.labels, datasets:[{label:'Confidence %', data:d.confidence_trends.values, borderColor:'#2563eb', tension:.3}]}, options:{scales:{y:{max:100}}}});
+  new Chart(document.getElementById('recTrend'), {type:'bar', data:{labels:d.recognition_trends.labels, datasets:[{label:'Detections', data:d.recognition_trends.values, backgroundColor:'#7c3aed'}]}});
+  new Chart(document.getElementById('progChart'), {type:'doughnut', data:{labels:d.programmes.labels, datasets:[{data:d.programmes.values, backgroundColor:['#2563eb','#16a34a','#ca8a04','#dc2626','#0891b2','#7c3aed','#ea580c','#64748b']}]}});
+  new Chart(document.getElementById('modChart'), {type:'bar', data:{labels:d.modules.labels, datasets:[{label:'Sessions', data:d.modules.values, backgroundColor:'#0891b2'}]}});
+  new Chart(document.getElementById('corrChart'), {type:'scatter', data:{datasets:[{label:'Students', data:corr.map(function(c){return {x:c.attendance,y:c.performance,label:c.name};}), backgroundColor:'#2563eb'}]}, options:{scales:{x:{title:{display:true,text:'Attendance %'}, max:100}, y:{title:{display:true,text:'Performance %'}, max:100}}}});
+})();
+</script>
+{% endblock %}

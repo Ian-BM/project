@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Programmes{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+{% block page_header %}
+<div class="page-header">
+  <div class="page-header-text"><h1>Programmes</h1><p class="page-header-subtitle">Academic degree programmes</p></div>
+  <div class="page-header-actions"><a href="{% url 'programme_create' %}" class="btn btn-primary"><i data-lucide="plus"></i> Create Programme</a></div>
+</div>
+{% endblock %}
+{% block content %}
+<form class="filter-bar" method="get">
+  <div class="table-search" style="max-width:280px;"><span class="table-search-icon"><i data-lucide="search"></i></span>
+  <input type="search" name="q" value="{{ filters.q }}" placeholder="Search programmes..."></div>
+  <select name="department" class="form-select" style="width:auto;"><option value="">All Departments</option>{% for d in departments %}<option value="{{ d.id }}" {% if filters.department == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>{% endfor %}</select>
+  <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+</form>
+<div class="card"><table class="data-table">
+<thead><tr><th>Code</th><th>Name</th><th>Department</th><th>Students</th><th>Modules</th><th>Attendance %</th><th>Performance</th><th>Actions</th></tr></thead>
+<tbody>
+{% for row in rows %}
+<tr>
+  <td><a href="{% url 'programme_detail' row.programme.pk %}" class="font-medium">{{ row.programme.code }}</a></td>
+  <td>{{ row.programme.name }}</td>
+  <td>{{ row.programme.department.name|default:"—" }}</td>
+  <td>{{ row.students }}</td>
+  <td>{{ row.modules }}</td>
+  <td>{{ row.attendance_percent }}%</td>
+  <td>{{ row.avg_performance|default:"—" }}{% if row.avg_performance %}%{% endif %}</td>
+  <td><a href="{% url 'programme_detail' row.programme.pk %}" class="btn btn-sm btn-ghost">View</a></td>
+</tr>
+{% empty %}
+<tr><td colspan="8"><div class="empty-state"><h3>No programmes yet</h3><a href="{% url 'programme_create' %}" class="btn btn-primary">Create Programme</a></div></td></tr>
+{% endfor %}
+</tbody></table></div>
+{% endblock %}

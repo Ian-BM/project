@@ -11,7 +11,7 @@
                     type="search"
                     id="globalSearch"
                     class="global-search-input"
-                    placeholder="Search students, courses, sessions..."
+                    placeholder="Search programmes, modules, students, sessions..."
                     autocomplete="off"
                     aria-label="Global search"
                 >
@@ -30,14 +30,22 @@
                     <span class="global-search-result-icon"><i data-lucide="users"></i></span>
                     <span>Students</span>
                 </a>
-                <a href="{% url 'course_list' %}" class="global-search-result">
-                    <span class="global-search-result-icon"><i data-lucide="book-open"></i></span>
-                    <span>Courses</span>
+                <a href="{% url 'programme_list' %}" class="global-search-result">
+                    <span class="global-search-result-icon"><i data-lucide="graduation-cap"></i></span>
+                    <span>Programmes</span>
                 </a>
-                <div class="global-search-result sidebar-nav-item--placeholder" style="cursor:pointer;">
+                <a href="{% url 'module_list' %}" class="global-search-result">
+                    <span class="global-search-result-icon"><i data-lucide="book-open"></i></span>
+                    <span>Modules</span>
+                </a>
+                <a href="{% url 'session_list' %}" class="global-search-result">
                     <span class="global-search-result-icon"><i data-lucide="calendar-clock"></i></span>
                     <span>Sessions</span>
-                </div>
+                </a>
+                <a href="{% url 'reports_hub' %}" class="global-search-result">
+                    <span class="global-search-result-icon"><i data-lucide="file-text"></i></span>
+                    <span>Reports</span>
+                </a>
             </div>
         </div>
     </div>
@@ -104,7 +112,7 @@
                     </div>
                 </div>
                 <div class="dropdown-footer">
-                    <a href="#">View all notifications</a>
+                    <a href="{% url 'notifications_list' %}">View all notifications</a>
                 </div>
             </div>
         </div>

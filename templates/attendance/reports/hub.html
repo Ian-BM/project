@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Reports{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+{% block page_header %}
+<div class="page-header">
+  <div class="page-header-text"><h1>Reports</h1><p class="page-header-subtitle">Generate attendance, recognition and academic reports</p></div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="stat-grid mb-6" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr));">
+{% for value,label in report_types %}
+  <a href="{% url 'report_view' value %}" class="stat-card" style="text-decoration:none;color:inherit;">
+    <div class="stat-card-value" style="font-size:1rem;">{{ label }}</div>
+    <div class="stat-card-label">Open report</div>
+  </a>
+{% endfor %}
+</div>
+<div class="card"><div class="card-header"><h3>Recent Reports</h3></div>
+<table class="data-table"><thead><tr><th>Type</th><th>Generated</th><th></th></tr></thead>
+<tbody>{% for r in recent_reports %}<tr>
+  <td>{{ r.get_report_type_display }}</td>
+  <td>{{ r.created_at|date:"M d, H:i" }}</td>
+  <td><a href="{% url 'report_view' r.report_type %}" class="btn btn-sm btn-ghost">Open</a></td>
+</tr>{% empty %}<tr><td colspan="3" class="text-muted">No reports generated yet.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

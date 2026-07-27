@@ -50,12 +50,17 @@
     <div>
         <div class="stat-grid" style="margin-bottom:1.5rem;">
             <div class="stat-card"><div class="stat-card-value">{{ attendance_percent }}%</div><div class="stat-card-label">Attendance Rate</div></div>
-            <div class="stat-card"><div class="stat-card-value">{{ profile.average_grade|default:"—" }}</div><div class="stat-card-label">Average Grade</div></div>
+            <div class="stat-card"><div class="stat-card-value">{{ profile.programme.code|default:"—" }}</div><div class="stat-card-label">Programme</div></div>
             <div class="stat-card"><div class="stat-card-value">{{ detections|length }}</div><div class="stat-card-label">Recognitions</div></div>
         </div>
 
-        <div class="card mb-4"><div class="card-header"><h3>Courses</h3></div><div class="card-body">
-            {% for e in enrollments %}<span class="badge badge-primary" style="margin:0.25rem;">{{ e.course.code }}</span>{% empty %}<p class="text-muted">Not enrolled in any course.</p>{% endfor %}
+        <div class="card mb-4"><div class="card-header"><h3>Programme</h3></div><div class="card-body">
+            {% if profile.programme %}<a href="{% url 'programme_detail' profile.programme.pk %}" class="badge badge-primary">{{ profile.programme.code }} — {{ profile.programme.name }}</a>
+            {% else %}<p class="text-muted">No programme assigned.</p>{% endif %}
+        </div></div>
+
+        <div class="card mb-4"><div class="card-header"><div style="display:flex;justify-content:space-between;align-items:center;width:100%;"><h3>Modules Taken</h3><a href="{% url 'student_performance' student.pk %}" class="btn btn-sm btn-ghost">Performance</a></div></div><div class="card-body">
+            {% for e in enrollments %}<a href="{% url 'module_detail' e.module.pk %}" class="badge badge-primary" style="margin:0.25rem;">{{ e.module.code }}</a>{% empty %}<p class="text-muted">Not enrolled in any module.</p>{% endfor %}
         </div></div>
 
         <div class="card mb-4"><div class="card-header"><h3>Attendance History</h3></div>

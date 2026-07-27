@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Assessments{% endblock %}
+{% block page_header %}
+<div class="page-header">
+  <div class="page-header-text"><h1>Assessments</h1><p class="page-header-subtitle">Quizzes, tests and exams by module</p></div>
+  <div class="page-header-actions"><a href="{% url 'assessment_create' %}" class="btn btn-primary">New Assessment</a></div>
+</div>
+{% endblock %}
+{% block content %}
+<form class="filter-bar" method="get">
+  <select name="module" class="form-select" style="width:auto;"><option value="">All Modules</option>{% for m in modules %}<option value="{{ m.id }}" {% if filters.module == m.id|stringformat:"s" %}selected{% endif %}>{{ m.code }}</option>{% endfor %}</select>
+  <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+</form>
+<div class="card"><table class="data-table">
+<thead><tr><th>Title</th><th>Module</th><th>Type</th><th>Semester</th><th>Year</th><th>Max</th><th>Teacher</th><th></th></tr></thead>
+<tbody>{% for a in page_obj %}
+<tr>
+  <td><a href="{% url 'assessment_detail' a.pk %}">{{ a.title }}</a></td>
+  <td>{{ a.module.code }}</td>
+  <td>{{ a.get_assessment_type_display }}</td>
+  <td>{{ a.semester|default:"—" }}</td>
+  <td>{{ a.academic_year|default:"—" }}</td>
+  <td>{{ a.max_marks }}</td>
+  <td>{{ a.teacher.get_full_name|default:a.teacher.username }}</td>
+  <td><a href="{% url 'assessment_detail' a.pk %}" class="btn btn-sm btn-ghost">Open</a></td>
+</tr>
+{% empty %}<tr><td colspan="8"><div class="empty-state"><h3>No assessments</h3><a href="{% url 'assessment_create' %}" class="btn btn-primary">Create one</a></div></td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

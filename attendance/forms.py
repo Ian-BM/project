@@ -1,7 +1,16 @@
 from django import forms
 from django.contrib.auth.models import User
 
-from attendance.models import Course, Department, Enrollment, Student, StudentProfile
+from attendance.models import (
+    Assessment,
+    Department,
+    Module,
+    PerformanceRecord,
+    Programme,
+    Session,
+    Student,
+    StudentProfile,
+)
 from attendance.services.dataset import validate_student_image
 
 
@@ -16,18 +25,41 @@ class DepartmentForm(forms.ModelForm):
         }
 
 
-class CourseForm(forms.ModelForm):
+class ProgrammeForm(forms.ModelForm):
     class Meta:
-        model = Course
+        model = Programme
+        fields = ["name", "code", "department", "duration_years", "description"]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-input", "placeholder": "Bachelor of Computer Science"}),
+            "code": forms.TextInput(attrs={"class": "form-input", "placeholder": "BSC-CS"}),
+            "department": forms.Select(attrs={"class": "form-select"}),
+            "duration_years": forms.NumberInput(attrs={"class": "form-input", "min": 1}),
+            "description": forms.Textarea(attrs={"class": "form-input", "rows": 3}),
+        }
+
+    def clean_code(self):
+        code = self.cleaned_data["code"].strip().upper()
+        qs = Programme.objects.filter(code__iexact=code)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("A programme with this code already exists.")
+        return code
+
+
+class ModuleForm(forms.ModelForm):
+    class Meta:
+        model = Module
         fields = [
-            "name", "code", "department", "semester", "academic_year",
+            "name", "code", "programme", "department", "semester", "academic_year",
             "credits", "teacher", "description",
         ]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-input"}),
-            "code": forms.TextInput(attrs={"class": "form-input"}),
+            "name": forms.TextInput(attrs={"class": "form-input", "placeholder": "Database Systems"}),
+            "code": forms.TextInput(attrs={"class": "form-input", "placeholder": "CS301"}),
+            "programme": forms.Select(attrs={"class": "form-select"}),
             "department": forms.Select(attrs={"class": "form-select"}),
-            "semester": forms.TextInput(attrs={"class": "form-input", "placeholder": "Fall 2026"}),
+            "semester": forms.TextInput(attrs={"class": "form-input", "placeholder": "Semester 1"}),
             "academic_year": forms.TextInput(attrs={"class": "form-input", "placeholder": "2025-2026"}),
             "credits": forms.NumberInput(attrs={"class": "form-input", "min": 1}),
             "teacher": forms.Select(attrs={"class": "form-select"}),
@@ -38,16 +70,42 @@ class CourseForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if user:
             self.fields["teacher"].initial = user.pk
+        self.fields["programme"].queryset = Programme.objects.all()
         self.fields["department"].queryset = Department.objects.all()
 
     def clean_code(self):
         code = self.cleaned_data["code"].strip().upper()
-        qs = Course.objects.filter(code__iexact=code)
+        qs = Module.objects.filter(code__iexact=code)
         if self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
-            raise forms.ValidationError("A course with this code already exists.")
+            raise forms.ValidationError("A module with this code already exists.")
         return code
+
+
+# Backwards-compatible alias
+CourseForm = ModuleForm
+
+
+class SessionForm(forms.ModelForm):
+    class Meta:
+        model = Session
+        fields = ["name", "module", "room", "date", "start_time", "scheduled_start", "scheduled_end", "status", "notes"]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-input"}),
+            "module": forms.Select(attrs={"class": "form-select"}),
+            "room": forms.TextInput(attrs={"class": "form-input", "placeholder": "Lab A / Room 12"}),
+            "date": forms.DateInput(attrs={"class": "form-input", "type": "date"}),
+            "start_time": forms.DateTimeInput(attrs={"class": "form-input", "type": "datetime-local"}),
+            "scheduled_start": forms.DateTimeInput(attrs={"class": "form-input", "type": "datetime-local"}),
+            "scheduled_end": forms.DateTimeInput(attrs={"class": "form-input", "type": "datetime-local"}),
+            "status": forms.Select(attrs={"class": "form-select"}),
+            "notes": forms.Textarea(attrs={"class": "form-input", "rows": 2}),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["module"].queryset = Module.objects.all().order_by("code")
 
 
 class StudentForm(forms.Form):
@@ -73,10 +131,11 @@ class StudentForm(forms.Form):
         required=False,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-    course = forms.ModelChoiceField(
-        queryset=Course.objects.all(),
+    programme = forms.ModelChoiceField(
+        queryset=Programme.objects.all(),
         required=False,
         widget=forms.Select(attrs={"class": "form-select"}),
+        help_text="Academic programme the student belongs to.",
     )
     status = forms.ChoiceField(
         choices=StudentProfile.STATUS_CHOICES,
@@ -111,17 +170,17 @@ class StudentEditForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
         fields = [
-            "registration_number", "email", "phone", "department",
-            "status", "risk_level", "average_grade", "notes",
+            "registration_number", "email", "phone", "department", "programme",
+            "status", "risk_level", "notes",
         ]
         widgets = {
             "registration_number": forms.TextInput(attrs={"class": "form-input"}),
             "email": forms.EmailInput(attrs={"class": "form-input"}),
             "phone": forms.TextInput(attrs={"class": "form-input"}),
             "department": forms.Select(attrs={"class": "form-select"}),
+            "programme": forms.Select(attrs={"class": "form-select"}),
             "status": forms.Select(attrs={"class": "form-select"}),
             "risk_level": forms.Select(attrs={"class": "form-select"}),
-            "average_grade": forms.NumberInput(attrs={"class": "form-input", "step": "0.01"}),
             "notes": forms.Textarea(attrs={"class": "form-input", "rows": 3}),
         }
 
@@ -149,6 +208,39 @@ class StudentImageForm(forms.Form):
         upload = self.cleaned_data["photos"]
         validate_student_image(upload)
         return upload
+
+
+class AssessmentForm(forms.ModelForm):
+    class Meta:
+        model = Assessment
+        fields = [
+            "module", "title", "assessment_type", "max_marks",
+            "semester", "academic_year", "date",
+        ]
+        widgets = {
+            "module": forms.Select(attrs={"class": "form-select"}),
+            "title": forms.TextInput(attrs={"class": "form-input"}),
+            "assessment_type": forms.Select(attrs={"class": "form-select"}),
+            "max_marks": forms.NumberInput(attrs={"class": "form-input", "step": "0.01"}),
+            "semester": forms.TextInput(attrs={"class": "form-input"}),
+            "academic_year": forms.TextInput(attrs={"class": "form-input"}),
+            "date": forms.DateInput(attrs={"class": "form-input", "type": "date"}),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["module"].queryset = Module.objects.all()
+
+
+class PerformanceRecordForm(forms.ModelForm):
+    class Meta:
+        model = PerformanceRecord
+        fields = ["student", "marks", "remarks"]
+        widgets = {
+            "student": forms.Select(attrs={"class": "form-select"}),
+            "marks": forms.NumberInput(attrs={"class": "form-input", "step": "0.01"}),
+            "remarks": forms.Textarea(attrs={"class": "form-input", "rows": 2}),
+        }
 
 
 class EnrollmentForm(forms.Form):

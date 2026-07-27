@@ -60,10 +60,10 @@
                 <div class="card-header"><h3>Session Controls</h3><span class="badge badge-neutral" id="sessionStatus">Stopped</span></div>
                 <div class="card-body">
                     <div class="form-group">
-                        <label class="form-label">Course</label>
+                        <label class="form-label">Module</label>
                         <select id="courseSelect" class="form-select">
-                            <option value="">— No course —</option>
-                            {% for course in courses %}
+                            <option value="">— No module —</option>
+                            {% for course in modules %}
                             <option value="{{ course.id }}">{{ course.code }} — {{ course.name }}</option>
                             {% endfor %}
                         </select>

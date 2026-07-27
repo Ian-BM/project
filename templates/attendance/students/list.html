@@ -26,7 +26,8 @@
     <div class="table-search" style="max-width:280px;"><span class="table-search-icon"><i data-lucide="search"></i></span>
         <input type="search" name="q" value="{{ filters.q }}" placeholder="Search name, ID, email..."></div>
     <select name="department" class="form-select" style="width:auto;"><option value="">All Departments</option>{% for d in departments %}<option value="{{ d.id }}" {% if filters.department == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>{% endfor %}</select>
-    <select name="course" class="form-select" style="width:auto;"><option value="">All Courses</option>{% for c in courses %}<option value="{{ c.id }}" {% if filters.course == c.id|stringformat:"s" %}selected{% endif %}>{{ c.code }}</option>{% endfor %}</select>
+    <select name="programme" class="form-select" style="width:auto;"><option value="">All Programmes</option>{% for p in programmes %}<option value="{{ p.id }}" {% if filters.programme == p.id|stringformat:"s" %}selected{% endif %}>{{ p.code }}</option>{% endfor %}</select>
+    <select name="module" class="form-select" style="width:auto;"><option value="">All Modules</option>{% for c in modules %}<option value="{{ c.id }}" {% if filters.module == c.id|stringformat:"s" or filters.course == c.id|stringformat:"s" %}selected{% endif %}>{{ c.code }}</option>{% endfor %}</select>
     <select name="status" class="form-select" style="width:auto;"><option value="">All Status</option><option value="active" {% if filters.status == 'active' %}selected{% endif %}>Active</option><option value="inactive" {% if filters.status == 'inactive' %}selected{% endif %}>Inactive</option></select>
     <select name="risk" class="form-select" style="width:auto;"><option value="">All Risk</option><option value="low" {% if filters.risk == 'low' %}selected{% endif %}>Low</option><option value="medium" {% if filters.risk == 'medium' %}selected{% endif %}>Medium</option><option value="high" {% if filters.risk == 'high' %}selected{% endif %}>High</option></select>
     <button class="btn btn-primary btn-sm" type="submit">Filter</button>
@@ -36,8 +37,8 @@
     <div class="table-wrapper" style="border:none;">
         <table class="data-table">
             <thead><tr>
-                <th>Photo</th><th>ID</th><th>Name</th><th>Department</th><th>Course</th>
-                <th>Attendance %</th><th>Grade</th><th>Recognition</th><th>Risk</th><th>Actions</th>
+                <th>Photo</th><th>ID</th><th>Name</th><th>Department</th><th>Programme</th><th>Module</th>
+                <th>Attendance %</th><th>Recognition</th><th>Risk</th><th>Actions</th>
             </tr></thead>
             <tbody>
             {% for row in rows %}
@@ -46,9 +47,9 @@
                 <td>{{ row.registration }}</td>
                 <td><a href="{% url 'student_detail' row.student.pk %}" class="font-medium">{{ row.student.name }}</a></td>
                 <td>{{ row.department.name|default:"—" }}</td>
-                <td>{{ row.course.code|default:"—" }}</td>
+                <td>{{ row.programme.code|default:"—" }}</td>
+                <td>{{ row.module.code|default:"—" }}</td>
                 <td>{{ row.attendance_percent }}%</td>
-                <td>{{ row.grade|default:"—" }}</td>
                 <td><span class="badge badge-{% if row.recognition_status == 'encoded' %}success{% elif row.recognition_status == 'pending' %}warning{% else %}danger{% endif %}">{{ row.recognition_status }}</span></td>
                 <td><span class="badge badge-{% if row.risk_level == 'high' %}danger{% elif row.risk_level == 'medium' %}warning{% else %}neutral{% endif %}">{{ row.risk_level }}</span></td>
                 <td><a href="{% url 'student_detail' row.student.pk %}" class="btn btn-sm btn-ghost">View</a></td>

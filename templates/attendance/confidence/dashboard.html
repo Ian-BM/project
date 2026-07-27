@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Confidence Analysis{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+{% block page_header %}
+<div class="page-header">
+  <div class="page-header-text"><h1>Confidence Analysis</h1><p class="page-header-subtitle">Recognition confidence, health and AI recommendations</p></div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="stat-grid mb-6">
+  <div class="stat-card"><div class="stat-card-value">{{ overall_confidence }}%</div><div class="stat-card-label">Overall Confidence</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ detection_ratio }}%</div><div class="stat-card-label">Detection Ratio (High)</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ time_coverage }}%</div><div class="stat-card-label">Mid-band Coverage</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ recency_score }}</div><div class="stat-card-label">Recency Score</div></div>
+</div>
+
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Confidence Distribution</h3></div><div class="card-body"><canvas id="distChart" height="200"></canvas></div></div>
+  <div class="card"><div class="card-header"><h3>Confidence Timeline</h3></div><div class="card-body"><canvas id="timeChart" height="200"></canvas></div></div>
+</div>
+
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Low Confidence Alerts</h3></div>
+    <table class="data-table"><thead><tr><th>Student</th><th>Confidence</th></tr></thead>
+    <tbody>{% for h in low_alerts %}<tr><td><a href="{% url 'student_detail' h.student.pk %}">{{ h.student.name }}</a></td><td>{{ h.confidence }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">No alerts.</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="card"><div class="card-header"><h3>Recognition Failures</h3></div>
+    <table class="data-table"><thead><tr><th>Session</th><th>Confidence</th><th>Frames</th></tr></thead>
+    <tbody>{% for f in failures %}<tr><td><a href="{% url 'session_detail' f.session.pk %}">#{{ f.session.id }}</a></td><td>{{ f.confidence }}%</td><td>{{ f.frames }}</td></tr>{% empty %}<tr><td colspan="3" class="text-muted">No failures flagged.</td></tr>{% endfor %}</tbody></table>
+  </div>
+</div>
+
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Student Confidence</h3></div>
+    <table class="data-table"><thead><tr><th>Student</th><th>%</th></tr></thead>
+    <tbody>{% for h in student_history %}<tr><td>{{ h.student.name }}</td><td>{{ h.confidence }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="card"><div class="card-header"><h3>Module Confidence</h3></div>
+    <table class="data-table"><thead><tr><th>Module</th><th>%</th></tr></thead>
+    <tbody>{% for m in module_conf %}<tr><td><a href="{% url 'module_detail' m.module.pk %}">{{ m.module.code }}</a></td><td>{{ m.confidence }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+</div>
+
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Programme Confidence</h3></div>
+    <table class="data-table"><thead><tr><th>Programme</th><th>%</th></tr></thead>
+    <tbody>{% for p in programme_conf %}<tr><td><a href="{% url 'programme_detail' p.programme.pk %}">{{ p.programme.code }}</a></td><td>{{ p.confidence }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="card"><div class="card-header"><h3>Session Confidence</h3></div>
+    <table class="data-table"><thead><tr><th>Session</th><th>%</th></tr></thead>
+    <tbody>{% for s in session_conf %}<tr><td><a href="{% url 'session_detail' s.session.pk %}">#{{ s.session.id }}</a></td><td>{{ s.confidence }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
+  </div>
+</div>
+
+<div class="card"><div class="card-header"><h3>AI Recommendations</h3></div><div class="card-body activity-list">
+{% for i in recommendations %}<div class="activity-item"><strong>{{ i.title }}</strong><p class="text-muted">{{ i.message }}</p>{% if i.link %}<a href="{{ i.link }}">View</a>{% endif %}</div>{% empty %}<p class="text-muted">No recommendations.</p>{% endfor %}
+</div></div>
+{{ chart_data|json_script:"confidence-chart-data" }}
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  var data = JSON.parse(document.getElementById('confidence-chart-data').textContent);
+  new Chart(document.getElementById('distChart'), {type:'pie', data:{labels:data.distribution.labels, datasets:[{data:data.distribution.values, backgroundColor:['#dc2626','#ca8a04','#16a34a']}]}, options:{plugins:{legend:{position:'bottom'}}}});
+  new Chart(document.getElementById('timeChart'), {type:'line', data:{labels:data.timeline.labels, datasets:[{label:'Confidence %', data:data.timeline.values, borderColor:'#2563eb', tension:.3, fill:false}]}, options:{scales:{y:{beginAtZero:true,max:100}}}});
+})();
+</script>
+{% endblock %}

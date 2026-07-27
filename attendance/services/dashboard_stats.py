@@ -9,6 +9,9 @@ from attendance.models import (
     Course,
     Detection,
     Enrollment,
+    Module,
+    ModuleEnrollment,
+    Programme,
     Session,
     Student,
     StudentProfile,
@@ -58,7 +61,8 @@ def build_dashboard_context(user):
     today_sess = _today_sessions(user)
 
     total_students = Student.objects.count()
-    courses_count = Course.objects.filter(Q(teacher=user) | Q(teacher__isnull=True)).count()
+    courses_count = Module.objects.filter(Q(teacher=user) | Q(teacher__isnull=True)).count()
+    programmes_count = Programme.objects.count()
     active_sessions = sessions.filter(is_active=True).count()
 
     today_summaries = AttendanceSummary.objects.filter(session__in=today_sess.filter(is_active=False))
@@ -94,6 +98,8 @@ def build_dashboard_context(user):
         "recognition_accuracy": recognition_accuracy,
         "average_confidence": avg_confidence_pct,
         "courses": courses_count,
+        "modules": courses_count,
+        "programmes": programmes_count,
         "active_sessions": active_sessions,
     }
 
@@ -101,8 +107,15 @@ def build_dashboard_context(user):
         "has_active": bool(active),
         "session_id": active.id if active else None,
         "teacher_name": user.get_full_name() or user.username,
-        "course_name": active.course.name if active and active.course else "—",
-        "course_code": active.course.code if active and active.course else "",
+        "course_name": active.module.name if active and active.module else "—",
+        "course_code": active.module.code if active and active.module else "",
+        "module_name": active.module.name if active and active.module else "—",
+        "module_code": active.module.code if active and active.module else "",
+        "programme_name": (
+            active.module.programme.name
+            if active and active.module and active.module.programme
+            else "—"
+        ),
         "frames_processed": active.total_frames if active else 0,
         "students_detected": (
             Detection.objects.filter(session=active).values("student_id").distinct().count()
@@ -113,7 +126,7 @@ def build_dashboard_context(user):
     }
 
     recent_sessions = list(
-        sessions.filter(is_active=False).select_related("course").order_by("-end_time")[:5]
+        sessions.filter(is_active=False).select_related("module").order_by("-end_time")[:5]
     )
     recent_detections = list(
         Detection.objects.filter(session__teacher=user)
@@ -208,9 +221,9 @@ def build_chart_data(user):
 
     course_labels = []
     course_values = []
-    for course in Course.objects.filter(teacher=user)[:6]:
+    for course in Module.objects.filter(teacher=user)[:6]:
         course_labels.append(course.code)
-        enrolled = Enrollment.objects.filter(course=course).count()
+        enrolled = ModuleEnrollment.objects.filter(module=course).count()
         course_values.append(enrolled)
 
     if not course_labels:

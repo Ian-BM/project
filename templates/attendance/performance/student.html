@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ student.name }} — Performance{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+{% block page_header %}
+<div class="page-header">
+  <div class="page-header-text"><h1>{{ student.name }} — Performance</h1><p class="page-header-subtitle">Modules, assessments and attendance correlation</p></div>
+  <div class="page-header-actions"><a href="{% url 'student_detail' student.pk %}" class="btn btn-secondary">Profile</a></div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="stat-grid mb-6">
+  <div class="stat-card"><div class="stat-card-value">{{ performance_avg|default:"—" }}{% if performance_avg %}%{% endif %}</div><div class="stat-card-label">Average Performance</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ attendance_percent }}%</div><div class="stat-card-label">Attendance %</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ confidence_percent }}%</div><div class="stat-card-label">Confidence %</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ correlation.attendance }} / {{ correlation.performance }}</div><div class="stat-card-label">Att vs Perf</div></div>
+</div>
+<div class="card mb-6"><div class="card-header"><h3>Assessment Results</h3></div>
+<table class="data-table"><thead><tr><th>Module</th><th>Assessment</th><th>Type</th><th>Marks</th><th>Result</th><th>Date</th></tr></thead>
+<tbody>{% for r in records %}<tr>
+  <td>{{ r.assessment.module.code }}</td><td>{{ r.assessment.title }}</td><td>{{ r.assessment.get_assessment_type_display }}</td>
+  <td>{{ r.marks }}/{{ r.assessment.max_marks }} ({{ r.percentage }}%)</td>
+  <td><span class="badge badge-{% if r.passed %}success{% else %}danger{% endif %}">{% if r.passed %}Pass{% else %}Fail{% endif %}</span></td>
+  <td>{{ r.recorded_at|date:"M d, Y" }}</td>
+</tr>{% empty %}<tr><td colspan="6" class="text-muted">No assessment results.</td></tr>{% endfor %}</tbody></table></div>
+<div class="card"><div class="card-header"><h3>Recent Attendance</h3></div>
+<table class="data-table"><thead><tr><th>Session</th><th>Status</th><th>Confidence</th></tr></thead>
+<tbody>{% for s in summaries %}<tr><td>#{{ s.session_id }}</td><td>{{ s.status }}</td><td>{{ s.confidence_score|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="3" class="text-muted">No attendance history.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

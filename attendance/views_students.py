@@ -17,6 +17,10 @@ from attendance.models import (
     Department,
     Detection,
     Enrollment,
+    Module,
+    ModuleEnrollment,
+    Programme,
+    ProgrammeEnrollment,
     Student,
     StudentImage,
     StudentProfile,
@@ -26,10 +30,13 @@ from attendance.services.dataset import copy_image_to_dataset, encoding_update_i
 
 
 def _student_list_queryset(request):
-    qs = Student.objects.select_related("profile", "profile__department").prefetch_related("enrollments__course")
+    qs = Student.objects.select_related(
+        "profile", "profile__department", "profile__programme"
+    ).prefetch_related("module_enrollments__module")
     q = request.GET.get("q", "").strip()
     department = request.GET.get("department", "")
-    course = request.GET.get("course", "")
+    course = request.GET.get("course", "") or request.GET.get("module", "")
+    programme = request.GET.get("programme", "")
     status = request.GET.get("status", "")
     risk = request.GET.get("risk", "")
 
@@ -42,7 +49,9 @@ def _student_list_queryset(request):
     if department:
         qs = qs.filter(profile__department_id=department)
     if course:
-        qs = qs.filter(enrollments__course_id=course)
+        qs = qs.filter(module_enrollments__module_id=course)
+    if programme:
+        qs = qs.filter(profile__programme_id=programme)
     if status:
         qs = qs.filter(profile__status=status)
     if risk:
@@ -52,11 +61,13 @@ def _student_list_queryset(request):
 
 def _student_row(student):
     profile = getattr(student, "profile", None)
-    enrollment = student.enrollments.select_related("course").first()
+    enrollment = student.module_enrollments.select_related("module").first()
     return {
         "student": student,
         "profile": profile,
-        "course": enrollment.course if enrollment else None,
+        "course": enrollment.module if enrollment else None,
+        "module": enrollment.module if enrollment else None,
+        "programme": profile.programme if profile else None,
         "attendance_percent": student_attendance_percent(student),
         "recognition_status": profile.recognition_status if profile else "pending",
         "risk_level": profile.risk_level if profile else "low",
@@ -82,7 +93,9 @@ def student_list(request):
             "page_obj": page,
             "rows": rows,
             "departments": Department.objects.all(),
-            "courses": Course.objects.all(),
+            "courses": Module.objects.all(),
+            "modules": Module.objects.all(),
+            "programmes": Programme.objects.all(),
             "filters": request.GET,
             "total_count": queryset.count(),
         },
@@ -104,13 +117,14 @@ def student_create(request):
                 email=form.cleaned_data.get("email", ""),
                 phone=form.cleaned_data.get("phone", ""),
                 department=form.cleaned_data.get("department"),
+                programme=form.cleaned_data.get("programme"),
                 status=form.cleaned_data["status"],
                 teacher=request.user,
                 recognition_status=StudentProfile.RECOG_PENDING,
             )
-            course = form.cleaned_data.get("course")
-            if course:
-                Enrollment.objects.get_or_create(student=student, course=course)
+            programme = form.cleaned_data.get("programme")
+            if programme:
+                ProgrammeEnrollment.objects.get_or_create(student=student, programme=programme)
 
             saved_count = 0
             for i, photo in enumerate(photos):
@@ -143,7 +157,9 @@ def student_create(request):
 
 @login_required
 def student_detail(request, pk):
-    student = get_object_or_404(Student.objects.prefetch_related("images", "enrollments__course"), pk=pk)
+    student = get_object_or_404(
+        Student.objects.prefetch_related("images", "module_enrollments__module"), pk=pk
+    )
     profile = getattr(student, "profile", None)
     if not profile:
         profile = StudentProfile.objects.create(
@@ -154,7 +170,8 @@ def student_detail(request, pk):
 
     summaries = AttendanceSummary.objects.filter(student=student).select_related("session").order_by("-session__end_time")[:20]
     detections = Detection.objects.filter(student=student).select_related("session").order_by("-timestamp")[:20]
-    enrollments = Enrollment.objects.filter(student=student).select_related("course")
+    enrollments = ModuleEnrollment.objects.filter(student=student).select_related("module")
+    programme_enrollments = ProgrammeEnrollment.objects.filter(student=student).select_related("programme")
 
     encoding_msg = request.session.pop("encoding_instructions", None)
 
@@ -167,6 +184,7 @@ def student_detail(request, pk):
             "summaries": summaries,
             "detections": detections,
             "enrollments": enrollments,
+            "programme_enrollments": programme_enrollments,
             "attendance_percent": student_attendance_percent(student),
             "encoding_msg": encoding_msg,
         },
@@ -230,16 +248,15 @@ def student_export(request):
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="students.csv"'
     writer = csv.writer(response)
-    writer.writerow(["Name", "Registration", "Email", "Department", "Course", "Attendance %", "Risk", "Status"])
-    for student in Student.objects.select_related("profile").prefetch_related("enrollments__course"):
+    writer.writerow(["Name", "Registration", "Email", "Department", "Programme", "Attendance %", "Risk", "Status"])
+    for student in Student.objects.select_related("profile", "profile__programme", "profile__department"):
         profile = getattr(student, "profile", None)
-        course = student.enrollments.select_related("course").first()
         writer.writerow([
             student.name,
             profile.registration_number if profile else "",
             profile.email if profile else "",
             profile.department.name if profile and profile.department else "",
-            course.course.code if course else "",
+            profile.programme.code if profile and profile.programme else "",
             student_attendance_percent(student),
             profile.risk_level if profile else "",
             profile.status if profile else "",
@@ -257,11 +274,19 @@ def api_search(request):
     students = Student.objects.filter(
         Q(name__icontains=q) | Q(profile__registration_number__icontains=q)
     )[:8]
-    courses = Course.objects.filter(Q(name__icontains=q) | Q(code__icontains=q))[:8]
+    modules = Module.objects.filter(Q(name__icontains=q) | Q(code__icontains=q))[:8]
+    programmes = Programme.objects.filter(Q(name__icontains=q) | Q(code__icontains=q))[:6]
+    from attendance.models import Session
+    sessions = Session.objects.filter(Q(name__icontains=q) | Q(room__icontains=q))[:6]
 
     results = []
     for s in students:
         results.append({"type": "student", "label": s.name, "url": f"/students/{s.pk}/", "icon": "user"})
-    for c in courses:
-        results.append({"type": "course", "label": f"{c.code} — {c.name}", "url": f"/courses/{c.pk}/", "icon": "book-open"})
+    for p in programmes:
+        results.append({"type": "programme", "label": f"{p.code} — {p.name}", "url": f"/programmes/{p.pk}/", "icon": "graduation-cap"})
+    for m in modules:
+        results.append({"type": "module", "label": f"{m.code} — {m.name}", "url": f"/modules/{m.pk}/", "icon": "book-open"})
+    for sess in sessions:
+        results.append({"type": "session", "label": sess.name or f"Session #{sess.pk}", "url": f"/sessions/{sess.pk}/", "icon": "calendar-clock"})
+    results.append({"type": "report", "label": "Reports Hub", "url": "/reports/", "icon": "file-text"})
     return JsonResponse({"results": results})

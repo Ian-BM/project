@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Session {{ session.id }} Print</title>
+<style>
+body{font-family:Georgia,serif;margin:2rem;color:#111}
+h1{font-size:1.5rem;margin-bottom:.25rem}h2{font-size:1.1rem;margin-top:1.5rem}
+table{width:100%;border-collapse:collapse;margin-top:1rem}th,td{border:1px solid #ccc;padding:.5rem;text-align:left;font-size:.9rem}
+.meta{color:#555;margin-bottom:1rem}.stats span{display:inline-block;margin-right:1.5rem}
+@media print{.no-print{display:none}}
+</style></head><body>
+<button class="no-print" onclick="window.print()">Print</button>
+<h1>{{ session.name|default:"Session" }} #{{ session.id }}</h1>
+<div class="meta">{{ session.module.code|default:"" }} · {{ session.date }} · {{ session.teacher.get_full_name|default:session.teacher.username }} · Room {{ session.room|default:"—" }}</div>
+<div class="stats"><span>Attendance: {{ attendance_percent }}%</span><span>Confidence: {{ confidence_percent }}%</span><span>Status: {{ session.get_status_display }}</span></div>
+<h2>Attendance</h2>
+<table><thead><tr><th>Student</th><th>Status</th><th>Confidence</th></tr></thead>
+<tbody>{% for s in summaries %}<tr><td>{{ s.student.name }}</td><td>{{ s.status }}</td><td>{{ s.confidence_score|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="3">No data</td></tr>{% endfor %}</tbody></table>
+</body></html>

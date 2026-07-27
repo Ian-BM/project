@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sessions{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+{% block page_header %}
+<div class="page-header">
+  <div class="page-header-text"><h1>Sessions</h1><p class="page-header-subtitle">Manage upcoming, live and completed attendance sessions</p></div>
+  <div class="page-header-actions">
+    <a href="{% url 'session_create' %}" class="btn btn-primary"><i data-lucide="plus"></i> Schedule Session</a>
+    <a href="{% url 'index' %}" class="btn btn-success"><i data-lucide="play"></i> Live Capture</a>
+  </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="stat-grid mb-6">
+  <div class="stat-card"><div class="stat-card-value">{{ counts.upcoming }}</div><div class="stat-card-label">Upcoming</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ counts.active }}</div><div class="stat-card-label">Active</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ counts.completed }}</div><div class="stat-card-label">Completed</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ counts.cancelled }}</div><div class="stat-card-label">Cancelled</div></div>
+</div>
+<form class="filter-bar" method="get">
+  <div class="table-search" style="max-width:240px;"><span class="table-search-icon"><i data-lucide="search"></i></span>
+  <input type="search" name="q" value="{{ filters.q }}" placeholder="Search sessions..."></div>
+  <select name="status" class="form-select" style="width:auto;"><option value="">All Status</option>{% for val,label in status_choices %}<option value="{{ val }}" {% if filters.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <select name="module" class="form-select" style="width:auto;"><option value="">All Modules</option>{% for m in modules %}<option value="{{ m.id }}" {% if filters.module == m.id|stringformat:"s" %}selected{% endif %}>{{ m.code }}</option>{% endfor %}</select>
+  <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+</form>
+<div class="card"><div class="table-wrapper" style="border:none;">
+<table class="data-table">
+<thead><tr><th>Session</th><th>Programme</th><th>Module</th><th>Teacher</th><th>Date</th><th>Room</th><th>Status</th><th>Attendance %</th><th>Recognition %</th><th>Confidence %</th><th>Duration</th><th>Actions</th></tr></thead>
+<tbody>
+{% for row in rows %}
+<tr>
+  <td><a href="{% url 'session_detail' row.session.pk %}" class="font-medium">{{ row.session.name|default:row.session.id }}</a></td>
+  <td>{{ row.programme.code|default:"—" }}</td>
+  <td>{{ row.session.module.code|default:"—" }}</td>
+  <td>{{ row.session.teacher.get_full_name|default:row.session.teacher.username }}</td>
+  <td>{{ row.session.date }}</td>
+  <td>{{ row.session.room|default:"—" }}</td>
+  <td><span class="badge badge-{% if row.session.status == 'active' %}success{% elif row.session.status == 'paused' %}warning{% elif row.session.status == 'cancelled' %}danger{% else %}neutral{% endif %}">{{ row.session.get_status_display }}</span></td>
+  <td>{{ row.attendance_percent }}%</td>
+  <td>{{ row.recognition_percent }}%</td>
+  <td>{{ row.confidence_percent }}%</td>
+  <td>{{ row.duration }}</td>
+  <td><a href="{% url 'session_detail' row.session.pk %}" class="btn btn-sm btn-ghost">Open</a></td>
+</tr>
+{% empty %}
+<tr><td colspan="12"><div class="empty-state"><h3>No sessions found</h3><a href="{% url 'session_create' %}" class="btn btn-primary">Create Session</a></div></td></tr>
+{% endfor %}
+</tbody></table>
+{% if page_obj.has_other_pages %}
+<div class="table-pagination"><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+<div class="pagination-controls">{% if page_obj.has_previous %}<a class="pagination-btn" href="?page={{ page_obj.previous_page_number }}">‹</a>{% endif %}
+<span class="pagination-btn active">{{ page_obj.number }}</span>
+{% if page_obj.has_next %}<a class="pagination-btn" href="?page={{ page_obj.next_page_number }}">›</a>{% endif %}</div></div>
+{% endif %}
+</div></div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Enroll — {{ programme.code }}{% endblock %}
+{% block page_header %}<div class="page-header"><div class="page-header-text"><h1>Enroll Students</h1><p class="page-header-subtitle">{{ programme.code }} — {{ programme.name }}</p></div></div>{% endblock %}
+{% block content %}
+<div class="card" style="max-width:600px;"><div class="card-body">
+<form method="post">{% csrf_token %}
+<div class="form-group"><label class="form-label">Select Students</label>
+<select name="students" class="form-select" multiple size="12">{% for s in available_students %}<option value="{{ s.pk }}">{{ s.name }}</option>{% empty %}<option disabled>All students already enrolled</option>{% endfor %}</select>
+</div>
+<div class="btn-group"><button class="btn btn-primary" type="submit">Enroll Selected</button><a href="{% url 'programme_detail' programme.pk %}" class="btn btn-secondary">Cancel</a></div>
+</form></div></div>
+{% endblock %}

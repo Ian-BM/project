@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
-from .models import AttendanceSummary, Course, Detection, Session, Student
+from .models import AttendanceSummary, Course, Detection, Module, Session, Student
 from .services.dashboard_stats import build_dashboard_context, get_live_attendance_rows
 from .services.recognition_details import recognize_faces_detailed
 
@@ -25,8 +25,8 @@ def _active_session(user):
 
 @login_required
 def index(request):
-    courses = Course.objects.filter(Q(teacher=request.user) | Q(teacher__isnull=True)).distinct().order_by("name")
-    return render(request, "attendance/index.html", {"courses": courses})
+    modules = Module.objects.filter(Q(teacher=request.user) | Q(teacher__isnull=True)).distinct().order_by("name")
+    return render(request, "attendance/index.html", {"courses": modules, "modules": modules})
 
 
 @login_required
@@ -241,34 +241,40 @@ def start_session_view(request):
                 "session_id": active_session.id,
                 "is_active": True,
                 "message": "Resuming existing active session.",
-                "course_id": active_session.course_id,
-                "course_name": active_session.course.name if active_session.course else None,
+                "course_id": active_session.module_id,
+                "module_id": active_session.module_id,
+                "course_name": active_session.module.name if active_session.module else None,
+                "module_name": active_session.module.name if active_session.module else None,
             }
         )
 
-    course = None
+    module = None
     try:
         if request.body:
             payload = json.loads(request.body.decode("utf-8"))
-            course_id = payload.get("course_id")
-            if course_id:
-                course = Course.objects.filter(pk=course_id).first()
+            module_id = payload.get("module_id") or payload.get("course_id")
+            if module_id:
+                module = Module.objects.filter(pk=module_id).first()
     except (json.JSONDecodeError, ValueError):
         pass
 
     now = timezone.now()
     session = Session.objects.create(
         teacher=request.user,
-        course=course,
+        module=module,
+        name=f"{module.code} Session" if module else "Attendance Session",
         date=now.date(),
         start_time=now,
         is_active=True,
+        status=Session.STATUS_ACTIVE,
     )
     return JsonResponse({
         "session_id": session.id,
         "is_active": True,
-        "course_id": session.course_id,
-        "course_name": session.course.name if session.course else None,
+        "course_id": session.module_id,
+        "module_id": session.module_id,
+        "course_name": session.module.name if session.module else None,
+        "module_name": session.module.name if session.module else None,
     })
 
 
@@ -282,9 +288,22 @@ def end_session_view(request):
 
     session.is_active = False
     session.end_time = timezone.now()
-    session.save(update_fields=["is_active", "end_time"])
+    session.status = Session.STATUS_COMPLETED
+    session.is_paused = False
+    session.save(update_fields=["is_active", "end_time", "status", "is_paused"])
 
     _compute_summary_for_session(session)
+
+    from attendance.services.academic import create_notification
+    from attendance.models import Notification
+
+    create_notification(
+        request.user,
+        "Session Completed",
+        f"Session #{session.id} ended. Attendance summary computed.",
+        Notification.TYPE_SUCCESS,
+        f"/sessions/{session.id}/",
+    )
 
     return JsonResponse({"session_id": session.id, "is_active": False})
 
@@ -300,11 +319,16 @@ def api_session_status(request):
         "active": True,
         "session_id": session.id,
         "teacher": request.user.get_full_name() or request.user.username,
-        "course": session.course.name if session.course else "—",
-        "course_code": session.course.code if session.course else "",
+        "course": session.module.name if session.module else "—",
+        "course_code": session.module.code if session.module else "",
+        "module": session.module.name if session.module else "—",
+        "module_code": session.module.code if session.module else "",
+        "programme": session.module.programme.name if session.module and session.module.programme else "—",
         "frames_processed": session.total_frames,
         "students_detected": detected,
         "started_at": session.start_time.isoformat(),
+        "status": session.status,
+        "is_paused": session.is_paused,
     })
 
 
