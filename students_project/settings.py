@@ -119,12 +119,12 @@ USE_I18N = True
 
 USE_TZ = True
 
-# Canonical display formats (DD MMM YYYY • HH:MM, 24-hour)
+# Canonical display formats (DD MMM YYYY • HH:MM:SS, Africa/Dar_es_Salaam)
 DATE_FORMAT = 'd M Y'
-TIME_FORMAT = 'H:i'
-DATETIME_FORMAT = r'd M Y \• H:i'
+TIME_FORMAT = 'H:i:s'
+DATETIME_FORMAT = r'd M Y \• H:i:s'
 SHORT_DATE_FORMAT = 'd M Y'
-SHORT_DATETIME_FORMAT = r'd M Y \• H:i'
+SHORT_DATETIME_FORMAT = r'd M Y \• H:i:s'
 
 
 # Static files (CSS, JavaScript, Images)

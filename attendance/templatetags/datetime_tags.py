@@ -17,11 +17,11 @@ def fmt_date(value):
 
 @register.filter(name="fmt_time")
 def fmt_time(value):
-    """HH:MM (24h) — e.g. 14:35"""
+    """HH:MM:SS (24h, Dar es Salaam) — e.g. 14:35:27"""
     return _fmt_time(value)
 
 
 @register.filter(name="fmt_datetime")
 def fmt_datetime(value):
-    """DD MMM YYYY • HH:MM — e.g. 02 Aug 2026 • 14:35"""
+    """DD MMM YYYY • HH:MM:SS (Dar es Salaam) — e.g. 02 Aug 2026 • 14:35:27"""
     return _fmt_datetime(value)

@@ -1,7 +1,8 @@
 /**
  * Live clock synchronized to Django server time.
  * Always renders in Africa/Dar_es_Salaam using format:
- *   02 Aug 2026 • 14:35
+ *   02 Aug 2026 • 14:35:27
+ * Must match Recognition History / fmt_datetime (same timezone + seconds).
  */
 const ClockManager = {
   TZ: "Africa/Dar_es_Salaam",
@@ -45,6 +46,7 @@ const ClockManager = {
       timeZone: this.TZ,
       hour: "2-digit",
       minute: "2-digit",
+      second: "2-digit",
       hour12: false,
       hourCycle: "h23",
     }).formatToParts(d);
@@ -55,10 +57,11 @@ const ClockManager = {
     const year = get(dateParts, "year");
     let hour = get(timeParts, "hour");
     const minute = get(timeParts, "minute");
+    const second = get(timeParts, "second");
     // Some engines emit "24" for midnight with hourCycle h23 — normalize
     if (hour === "24") hour = "00";
 
-    return `${day} ${month} ${year} • ${hour}:${minute}`;
+    return `${day} ${month} ${year} • ${hour}:${minute}:${second}`;
   },
 };
 
