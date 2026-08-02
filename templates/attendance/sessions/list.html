@@ -35,7 +35,7 @@
   <td>{{ row.programme.code|default:"—" }}</td>
   <td>{{ row.session.module.code|default:"—" }}</td>
   <td>{{ row.session.teacher.get_full_name|default:row.session.teacher.username }}</td>
-  <td>{{ row.session.date }}</td>
+  <td>{{ row.session.date|fmt_date }}</td>
   <td>{{ row.session.room|default:"—" }}</td>
   <td><span class="badge badge-{% if row.session.status == 'active' %}success{% elif row.session.status == 'paused' %}warning{% elif row.session.status == 'cancelled' %}danger{% else %}neutral{% endif %}">{{ row.session.get_status_display }}</span></td>
   <td>{{ row.attendance_percent }}%</td>

@@ -60,7 +60,7 @@
             <span data-live-session-label>Live Session</span>
         </div>
 
-        <span class="topbar-clock hide-mobile" id="topbarClock" aria-live="off">--:--:--</span>
+        <span class="topbar-clock hide-mobile" id="topbarClock" aria-live="off" data-server-now="{{ server_now_iso }}" data-timezone="Africa/Dar_es_Salaam">{{ server_datetime_display }}</span>
 
         <button class="topbar-btn" type="button" data-theme-toggle aria-label="Toggle theme">
             <span data-theme-icon-light><i data-lucide="moon"></i></span>

@@ -4,12 +4,13 @@
 body{font-family:Georgia,serif;margin:2rem;color:#111}
 h1{font-size:1.4rem}table{width:100%;border-collapse:collapse;margin-top:1rem}
 th,td{border:1px solid #ccc;padding:.45rem;text-align:left;font-size:.85rem}
+.meta{color:#555;margin-bottom:1rem}
 .no-print{margin-bottom:1rem}
 @media print{.no-print{display:none}}
 </style></head><body>
 <button class="no-print" onclick="window.print()">Print / Save PDF</button>
 <h1>{{ title }}</h1>
-<p>{{ rows|length }} row(s)</p>
+<p class="meta">Generation Date: {{ generated_date }} · Generation Time: {{ generated_time }} · {{ rows|length }} row(s)</p>
 <table><thead><tr>{% for c in columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
 <tbody>{% for row in rows %}<tr>{% for key, value in row.items %}<td>{{ value }}</td>{% endfor %}</tr>{% empty %}<tr><td>No data</td></tr>{% endfor %}</tbody>
 </table>

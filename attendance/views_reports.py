@@ -29,6 +29,7 @@ from attendance.services.academic import (
     student_attendance_percent,
     student_avg_confidence,
 )
+from attendance.utils.datetime_fmt import fmt_date, fmt_datetime, fmt_time, local_now
 
 
 def _apply_filters(qs, request, student_field="student", session_prefix="session"):
@@ -104,7 +105,7 @@ def report_view(request, report_type):
                     "Student": s.student.name,
                     "Session": s.session_id,
                     "Module": s.session.module.code if s.session.module else "—",
-                    "Date": s.session.date,
+                    "Date": fmt_date(s.session.date),
                     "Status": s.status,
                     "Confidence": round(s.confidence_score * 100, 1),
                 }
@@ -122,7 +123,7 @@ def report_view(request, report_type):
                     "Name": s.name or f"Session {s.id}",
                     "Module": s.module.code if s.module else "—",
                     "Lecturer": s.teacher.get_full_name() or s.teacher.username,
-                    "Date": s.date,
+                    "Date": fmt_date(s.date),
                     "Status": s.get_status_display(),
                     "Attendance %": session_attendance_percent(s),
                     "Confidence %": session_avg_confidence(s),
@@ -196,7 +197,7 @@ def report_view(request, report_type):
                 {
                     "Student": d.student.name,
                     "Session": d.session_id,
-                    "Timestamp": d.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                    "Timestamp": fmt_datetime(d.timestamp),
                 }
             )
     elif report_type == "confidence":
@@ -234,6 +235,7 @@ def report_view(request, report_type):
         )
 
     template = "attendance/reports/print.html" if is_print else "attendance/reports/view.html"
+    generated_at = local_now()
     return render(
         request,
         template,
@@ -242,6 +244,10 @@ def report_view(request, report_type):
             "report_type": report_type,
             "rows": rows,
             "columns": list(rows[0].keys()) if rows else [],
+            "generated_at": generated_at,
+            "generated_date": fmt_date(generated_at),
+            "generated_time": fmt_time(generated_at),
+            "generated_datetime": fmt_datetime(generated_at),
             **_filter_context(request),
         },
     )

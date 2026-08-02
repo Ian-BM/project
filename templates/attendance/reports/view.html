@@ -4,7 +4,7 @@
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
 {% block page_header %}
 <div class="page-header">
-  <div class="page-header-text"><h1>{{ title }}</h1><p class="page-header-subtitle">Filter and export report data</p></div>
+  <div class="page-header-text"><h1>{{ title }}</h1><p class="page-header-subtitle">Generated {{ generated_datetime }} · Filter and export report data</p></div>
   <div class="page-header-actions">
     <a class="btn btn-secondary" href="?{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}export=csv">CSV</a>
     <a class="btn btn-secondary" href="?{% for k,v in filters.items %}{{ k }}={{ v }}&{% endfor %}export=excel">Excel</a>

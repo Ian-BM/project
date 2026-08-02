@@ -35,7 +35,7 @@
         <p class="mt-2"><strong>Description:</strong> {{ module.description|default:"No description." }}</p>
     </div></div>
     <div class="card"><div class="card-header"><h3>Recent Sessions</h3></div><div class="card-body activity-list">
-        {% for s in sessions %}<div class="activity-item"><a href="{% url 'session_detail' s.pk %}"><strong>{{ s.name|default:"Session" }} #{{ s.id }}</strong></a><p class="text-muted">{{ s.start_time|date:"M d, H:i" }} — {{ s.get_status_display }}</p></div>{% empty %}<p class="text-muted">No sessions.</p>{% endfor %}
+        {% for s in sessions %}<div class="activity-item"><a href="{% url 'session_detail' s.pk %}"><strong>{{ s.name|default:"Session" }} #{{ s.id }}</strong></a><p class="text-muted">{{ s.start_time|fmt_datetime }} — {{ s.get_status_display }}</p></div>{% empty %}<p class="text-muted">No sessions.</p>{% endfor %}
     </div></div>
 </div>
 

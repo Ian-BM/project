@@ -6,7 +6,7 @@
 <div class="page-header">
   <div class="page-header-text">
     <h1>{{ session.name|default:"Session" }} #{{ session.id }}</h1>
-    <p class="page-header-subtitle">{{ session.module.code|default:"—" }} · {{ session.date }} · {{ session.get_status_display }}</p>
+    <p class="page-header-subtitle">{{ session.module.code|default:"—" }} · {{ session.date|fmt_date }} · {{ session.get_status_display }}</p>
   </div>
   <div class="page-header-actions">
     {% if session.status == 'upcoming' or session.status == 'paused' %}
@@ -42,9 +42,9 @@
     <p class="mt-2"><strong>Module:</strong> {% if session.module %}<a href="{% url 'module_detail' session.module.pk %}">{{ session.module.code }} — {{ session.module.name }}</a>{% else %}—{% endif %}</p>
     <p class="mt-2"><strong>Lecturer:</strong> {{ session.teacher.get_full_name|default:session.teacher.username }}</p>
     <p class="mt-2"><strong>Room:</strong> {{ session.room|default:"—" }}</p>
-    <p class="mt-2"><strong>Date:</strong> {{ session.date }}</p>
-    <p class="mt-2"><strong>Start:</strong> {{ session.start_time|date:"M d, H:i"|default:"—" }}</p>
-    <p class="mt-2"><strong>End:</strong> {{ session.end_time|date:"M d, H:i"|default:"—" }}</p>
+    <p class="mt-2"><strong>Date:</strong> {{ session.date|fmt_date }}</p>
+    <p class="mt-2"><strong>Start:</strong> {{ session.start_time|fmt_datetime }}</p>
+    <p class="mt-2"><strong>End:</strong> {{ session.end_time|fmt_datetime }}</p>
     <p class="mt-2"><strong>Notes:</strong> {{ session.notes|default:"—" }}</p>
   </div></div>
   <div class="card"><div class="card-header"><h3>Attendance Summary</h3></div><div class="card-body">
@@ -63,13 +63,13 @@
     <tbody>{% for s in summaries %}<tr><td><a href="{% url 'student_detail' s.student.pk %}">{{ s.student.name }}</a></td><td><span class="status-chip status-chip--{{ s.status|lower }}">{{ s.status }}</span></td><td>{{ s.confidence_score|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="3" class="text-muted">No summaries yet.</td></tr>{% endfor %}</tbody></table>
   </div>
   <div class="card"><div class="card-header"><h3>Recognition Timeline</h3></div><div class="card-body activity-list" style="max-height:320px;overflow:auto;">
-    {% for t in timeline %}<div class="activity-item"><strong>{{ t.student }}</strong><p class="text-muted">{{ t.time|date:"H:i:s" }}</p></div>{% empty %}<p class="text-muted">No recognition events.</p>{% endfor %}
+    {% for t in timeline %}<div class="activity-item"><strong>{{ t.student }}</strong><p class="text-muted">{{ t.time|fmt_time }}</p></div>{% empty %}<p class="text-muted">No recognition events.</p>{% endfor %}
   </div></div>
 </div>
 
 <div class="grid-2">
   <div class="card"><div class="card-header"><h3>Unknown Faces</h3></div><div class="card-body">
-    {% for u in unknown_faces %}<div class="activity-item"><span class="text-muted">{{ u.timestamp|date:"H:i:s" }} · confidence {{ u.confidence|floatformat:2 }}</span></div>{% empty %}<p class="text-muted">None recorded.</p>{% endfor %}
+    {% for u in unknown_faces %}<div class="activity-item"><span class="text-muted">{{ u.timestamp|fmt_time }} · confidence {{ u.confidence|floatformat:2 }}</span></div>{% empty %}<p class="text-muted">None recorded.</p>{% endfor %}
   </div></div>
   <div class="card"><div class="card-header"><h3>Confidence Graph</h3></div><div class="card-body"><canvas id="confChart" height="180"></canvas></div></div>
 </div>

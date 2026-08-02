@@ -17,6 +17,7 @@ from attendance.models import (
     Student,
     StudentProfile,
 )
+from attendance.utils.datetime_fmt import fmt_time
 
 
 def _teacher_sessions(user):
@@ -302,7 +303,7 @@ def get_live_attendance_rows(session):
             {
                 "student_id": sid,
                 "name": data["name"],
-                "recognition_time": data["last_seen"].strftime("%H:%M:%S"),
+                "recognition_time": fmt_time(data["last_seen"]),
                 "confidence": round(confidence, 4),
                 "confidence_percent": round(confidence * 100, 1),
                 "status": status,

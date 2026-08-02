@@ -28,7 +28,7 @@
         <p class="mt-2"><strong>Description:</strong> {{ course.description|default:"No description." }}</p>
     </div></div>
     <div class="card"><div class="card-header"><h3>Recent Sessions</h3></div><div class="card-body activity-list">
-        {% for s in sessions %}<div class="activity-item"><strong>Session #{{ s.id }}</strong><p class="text-muted">{{ s.start_time|date:"M d, H:i" }} — {% if s.is_active %}Active{% else %}Ended{% endif %}</p></div>{% empty %}<p class="text-muted">No sessions.</p>{% endfor %}
+        {% for s in sessions %}<div class="activity-item"><strong>Session #{{ s.id }}</strong><p class="text-muted">{{ s.start_time|fmt_datetime }} — {% if s.is_active %}Active{% else %}Ended{% endif %}</p></div>{% empty %}<p class="text-muted">No sessions.</p>{% endfor %}
     </div></div>
 </div>
 

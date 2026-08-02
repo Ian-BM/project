@@ -82,7 +82,7 @@
         <div class="card-header"><h3>Recent Sessions</h3></div>
         <div class="card-body activity-list">
             {% for s in recent_sessions %}
-            <div class="activity-item"><div class="activity-icon"><i data-lucide="calendar"></i></div><div><strong><a href="{% url 'session_detail' s.id %}">Session #{{ s.id }}</a></strong><p class="text-muted">{{ s.end_time|date:"M d, H:i" }}{% if s.module %} · {{ s.module.code }}{% endif %}</p></div></div>
+            <div class="activity-item"><div class="activity-icon"><i data-lucide="calendar"></i></div><div><strong><a href="{% url 'session_detail' s.id %}">Session #{{ s.id }}</a></strong><p class="text-muted">{{ s.end_time|fmt_datetime }}{% if s.module %} · {{ s.module.code }}{% endif %}</p></div></div>
             {% empty %}<p class="text-muted">No sessions yet.</p>{% endfor %}
         </div>
     </div>
@@ -90,7 +90,7 @@
         <div class="card-header"><h3>Recent Recognitions</h3></div>
         <div class="card-body activity-list">
             {% for d in recent_detections %}
-            <div class="activity-item"><div class="activity-icon"><i data-lucide="scan-face"></i></div><div><strong>{{ d.student.name }}</strong><p class="text-muted">{{ d.timestamp|date:"M d, H:i:s" }} · Session #{{ d.session_id }}</p></div></div>
+            <div class="activity-item"><div class="activity-icon"><i data-lucide="scan-face"></i></div><div><strong>{{ d.student.name }}</strong><p class="text-muted">{{ d.timestamp|fmt_datetime }} · Session #{{ d.session_id }}</p></div></div>
             {% empty %}<p class="text-muted">No recognitions yet.</p>{% endfor %}
         </div>
     </div>

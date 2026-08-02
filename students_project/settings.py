@@ -63,6 +63,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'attendance.context_processors.server_time',
+            ],
+            'builtins': [
+                'attendance.templatetags.datetime_tags',
             ],
         },
     },
@@ -108,11 +112,18 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Dar_es_Salaam'
 
 USE_I18N = True
 
 USE_TZ = True
+
+# Canonical display formats (DD MMM YYYY • HH:MM, 24-hour)
+DATE_FORMAT = 'd M Y'
+TIME_FORMAT = 'H:i'
+DATETIME_FORMAT = r'd M Y \• H:i'
+SHORT_DATE_FORMAT = 'd M Y'
+SHORT_DATETIME_FORMAT = r'd M Y \• H:i'
 
 
 # Static files (CSS, JavaScript, Images)

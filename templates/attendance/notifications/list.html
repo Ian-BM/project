@@ -14,7 +14,7 @@
     <div>
       <strong>{{ n.title }}</strong>
       <p class="text-muted">{{ n.message }}</p>
-      <span class="text-muted" style="font-size:.75rem;">{{ n.created_at|timesince }} ago · {{ n.get_notification_type_display }}</span>
+      <span class="text-muted" style="font-size:.75rem;">{{ n.created_at|fmt_datetime }} · {{ n.get_notification_type_display }}</span>
       {% if n.link %}<div class="mt-2"><a href="{{ n.link }}">Open</a></div>{% endif %}
     </div>
     {% if not n.is_read %}<a href="{% url 'notification_mark_read' n.pk %}" class="btn btn-sm btn-ghost">Mark read</a>{% endif %}
