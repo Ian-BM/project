@@ -1,4 +1,4 @@
-"""Template filters for consistent date/time display."""
+"""Template filters for East Africa Time (EAT) display."""
 
 from django import template
 
@@ -11,17 +11,21 @@ register = template.Library()
 
 @register.filter(name="fmt_date")
 def fmt_date(value):
-    """DD MMM YYYY — e.g. 02 Aug 2026"""
+    """EAT date — e.g. Aug 03, 2026"""
     return _fmt_date(value)
 
 
 @register.filter(name="fmt_time")
 def fmt_time(value):
-    """HH:MM:SS (24h, Dar es Salaam) — e.g. 23:14:24"""
+    """EAT time — e.g. 00:20:29"""
     return _fmt_time(value)
 
 
 @register.filter(name="fmt_datetime")
 def fmt_datetime(value):
-    """Local Tanzania datetime — e.g. Aug 02, 23:14:24"""
+    """
+    EAT datetime — e.g. Aug 03, 00:20:29
+
+    Always converts UTC → Africa/Dar_es_Salaam before formatting.
+    """
     return _fmt_datetime(value)

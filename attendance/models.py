@@ -311,7 +311,14 @@ class Detection(models.Model):
     timestamp = models.DateTimeField()
 
     def __str__(self):
-        return f"{self.student.name} @ {self.timestamp}"
+        return f"{self.student.name} @ {self.timestamp_eat}"
+
+    @property
+    def timestamp_eat(self):
+        """Recognition time in East Africa Time (same zone as navbar clock)."""
+        from attendance.utils.datetime_fmt import fmt_datetime
+
+        return fmt_datetime(self.timestamp)
 
 
 class AttendanceSummary(models.Model):

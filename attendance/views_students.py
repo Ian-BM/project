@@ -27,7 +27,6 @@ from attendance.models import (
 )
 from attendance.services.dashboard_stats import student_attendance_percent
 from attendance.services.dataset import copy_image_to_dataset, encoding_update_instructions, validate_student_image
-from attendance.utils.datetime_fmt import fmt_datetime
 
 
 def _student_list_queryset(request):
@@ -171,15 +170,9 @@ def student_detail(request, pk):
         )
 
     summaries = AttendanceSummary.objects.filter(student=student).select_related("session").order_by("-session__end_time")[:20]
-    detections_qs = Detection.objects.filter(student=student).select_related("session").order_by("-timestamp")[:20]
-    # Localize in the view so Recognition History never renders raw UTC
-    detections = [
-        {
-            "session_id": d.session_id,
-            "timestamp_display": fmt_datetime(d.timestamp),
-        }
-        for d in detections_qs
-    ]
+    detections = (
+        Detection.objects.filter(student=student).select_related("session").order_by("-timestamp")[:20]
+    )
     enrollments = ModuleEnrollment.objects.filter(student=student).select_related("module")
     programme_enrollments = ProgrammeEnrollment.objects.filter(student=student).select_related("programme")
 

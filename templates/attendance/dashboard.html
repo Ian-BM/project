@@ -90,7 +90,7 @@
         <div class="card-header"><h3>Recent Recognitions</h3></div>
         <div class="card-body activity-list">
             {% for d in recent_detections %}
-            <div class="activity-item"><div class="activity-icon"><i data-lucide="scan-face"></i></div><div><strong>{{ d.student.name }}</strong><p class="text-muted">{{ d.timestamp|fmt_datetime }} · Session #{{ d.session_id }}</p></div></div>
+            <div class="activity-item"><div class="activity-icon"><i data-lucide="scan-face"></i></div><div><strong>{{ d.student.name }}</strong><p class="text-muted">{{ d.timestamp_eat }} · Session #{{ d.session_id }}</p></div></div>
             {% empty %}<p class="text-muted">No recognitions yet.</p>{% endfor %}
         </div>
     </div>

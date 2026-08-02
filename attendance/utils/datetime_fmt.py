@@ -1,87 +1,102 @@
 """
 Canonical date/time formatting for Univera.
 
-Storage (USE_TZ=True): UTC in the database via timezone.now().
-Display: East Africa Time (EAT) — Africa/Dar_es_Salaam, UTC+3.
+Storage (USE_TZ=True): UTC via timezone.now().
+Display: East Africa Time (EAT) = Africa/Dar_es_Salaam (UTC+3).
 
-Lecturer-facing format example:
-  Aug 02, 23:14:24
+IMPORTANT:
+  django.utils.dateformat.format() uses the datetime's own wall-clock fields.
+  Formatting a UTC datetime WITHOUT astimezone() first produces UTC labels
+  (e.g. 21:20 when EAT is 00:20). Always convert with to_local() first.
 """
 
 from datetime import date, datetime, time, timezone as dt_timezone
 from zoneinfo import ZoneInfo
 
 from django.utils import timezone
-from django.utils.dateformat import format as dj_format
 
-# East Africa Time (EAT) — single source of truth for all UI timestamps
+# East Africa Time — same zone as the navbar clock
 DISPLAY_TZ_NAME = "Africa/Dar_es_Salaam"
 DISPLAY_TZ_LABEL = "EAT"
 DISPLAY_TZ = ZoneInfo(DISPLAY_TZ_NAME)
 UTC = dt_timezone.utc
 
-# Django dateformat codes (English, locale-stable)
-DATE_DJ = "M d, Y"          # Aug 02, 2026
-TIME_DJ = "H:i:s"           # 23:14:24
-DATETIME_DJ = "M d, H:i:s"  # Aug 02, 23:14:24
+_MONTHS = (
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+)
 
 
 def local_now():
-    """Current timezone-aware datetime in East Africa Time (EAT)."""
-    return timezone.localtime(timezone.now(), DISPLAY_TZ)
+    """Current time in East Africa Time (matches navbar clock source)."""
+    return timezone.now().astimezone(DISPLAY_TZ)
 
 
 def to_local(value):
     """
-    Convert any datetime to East Africa Time (EAT) for display.
+    Convert any datetime to Africa/Dar_es_Salaam (EAT).
 
-    With USE_TZ=True, DB values are UTC. Naive values are treated as UTC.
+    Uses datetime.astimezone() — not Django dateformat — so UTC cannot leak
+    into displayed hour/minute/second fields.
     """
     if value is None:
         return None
     if isinstance(value, datetime):
-        if timezone.is_naive(value):
-            value = timezone.make_aware(value, UTC)
-        return timezone.localtime(value, DISPLAY_TZ)
+        if value.tzinfo is None:
+            # SQLite/USE_TZ: naive values are UTC
+            value = value.replace(tzinfo=UTC)
+        return value.astimezone(DISPLAY_TZ)
     return value
 
 
+def _fmt_eat_datetime(eat_dt: datetime) -> str:
+    """Format an EAT-aware datetime as 'Aug 03, 00:20:29'."""
+    return (
+        f"{_MONTHS[eat_dt.month - 1]} {eat_dt.day:02d}, "
+        f"{eat_dt.hour:02d}:{eat_dt.minute:02d}:{eat_dt.second:02d}"
+    )
+
+
+def _fmt_eat_date(eat_date: date) -> str:
+    return f"{_MONTHS[eat_date.month - 1]} {eat_date.day:02d}, {eat_date.year}"
+
+
 def fmt_date(value):
-    """Format a date or datetime as MMM DD, YYYY — e.g. Aug 02, 2026 (EAT)."""
+    """MMM DD, YYYY in EAT — e.g. Aug 03, 2026."""
     if value is None or value == "":
         return "—"
     value = to_local(value)
     if isinstance(value, datetime):
-        return dj_format(value, DATE_DJ)
+        return _fmt_eat_date(value.date())
     if isinstance(value, date):
-        return dj_format(value, DATE_DJ)
+        return _fmt_eat_date(value)
     return str(value)
 
 
 def fmt_time(value):
-    """Format a time or datetime as HH:MM:SS in East Africa Time."""
+    """HH:MM:SS in EAT — e.g. 00:20:29."""
     if value is None or value == "":
         return "—"
     value = to_local(value)
     if isinstance(value, datetime):
-        return dj_format(value, TIME_DJ)
+        return f"{value.hour:02d}:{value.minute:02d}:{value.second:02d}"
     if isinstance(value, time):
-        return value.strftime("%H:%M:%S")
+        return f"{value.hour:02d}:{value.minute:02d}:{value.second:02d}"
     return str(value)
 
 
 def fmt_datetime(value):
     """
-    Format a datetime in East Africa Time for lecturers.
+    Lecturer-facing datetime in East Africa Time.
 
-    Example: face captured at 23:14:24 EAT → "Aug 02, 23:14:24"
-    Never returns raw UTC clock time.
+    UTC 21:20:08 → "Aug 03, 00:20:08"
+    Never formats UTC wall-clock fields directly.
     """
     if value is None or value == "":
         return "—"
     value = to_local(value)
     if isinstance(value, datetime):
-        return dj_format(value, DATETIME_DJ)
+        return _fmt_eat_datetime(value)
     if isinstance(value, date):
-        return dj_format(value, DATE_DJ)
+        return _fmt_eat_date(value)
     return str(value)
