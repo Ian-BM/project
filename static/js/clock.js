@@ -1,11 +1,12 @@
 /**
  * Live clock synchronized to Django server time.
- * Always renders in Africa/Dar_es_Salaam using the same format as
- * Recognition History / fmt_datetime:
+ * Always renders East Africa Time (EAT / Africa/Dar_es_Salaam):
  *   Aug 02, 23:14:24
+ * Same timezone + format as Recognition History and other modules.
  */
 const ClockManager = {
   TZ: "Africa/Dar_es_Salaam",
+  LABEL: "EAT",
   _offsetMs: 0,
 
   init() {
@@ -27,7 +28,7 @@ const ClockManager = {
       const now = new Date(Date.now() + this._offsetMs);
       el.textContent = this.formatDateTime(now);
       el.setAttribute("datetime", now.toISOString());
-      el.setAttribute("title", `${el.textContent} (${this.TZ})`);
+      el.setAttribute("title", `${el.textContent} (${this.LABEL})`);
     };
 
     update();

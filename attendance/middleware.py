@@ -5,8 +5,9 @@ from attendance.utils.datetime_fmt import DISPLAY_TZ_NAME
 
 class DarEsSalaamTimezoneMiddleware:
     """
-    Activate Africa/Dar_es_Salaam for every request so Django's
-    timezone.localtime() / template |date filters match the navbar clock.
+    Activate East Africa Time (Africa/Dar_es_Salaam) for every request so
+    Django timezone.localtime() and template date filters match the navbar
+    clock and Recognition History.
     """
 
     def __init__(self, get_response):

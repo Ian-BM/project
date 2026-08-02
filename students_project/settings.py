@@ -113,13 +113,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Africa/Dar_es_Salaam'
+TIME_ZONE = 'Africa/Dar_es_Salaam'  # East Africa Time (EAT, UTC+3)
 
 USE_I18N = True
 
 USE_TZ = True
 
-# Canonical display formats (localized via Africa/Dar_es_Salaam)
+# Canonical display formats — always shown in East Africa Time via helpers/middleware
 DATE_FORMAT = 'M d, Y'
 TIME_FORMAT = 'H:i:s'
 DATETIME_FORMAT = 'M d, H:i:s'

@@ -29,6 +29,7 @@ from attendance.services.academic import (
     sync_session_status,
 )
 from attendance.views import _compute_summary_for_session, _active_session
+from attendance.utils.datetime_fmt import fmt_datetime
 
 
 def _session_queryset(request):
@@ -135,18 +136,32 @@ def session_detail(request, pk):
     summaries = AttendanceSummary.objects.filter(session=session).select_related("student")
     detections = Detection.objects.filter(session=session).select_related("student").order_by("timestamp")
     unknown = UnknownFace.objects.filter(session=session)[:50]
+    # Pre-localize to East Africa Time so session logs never show UTC
     timeline = [
-        {"time": d.timestamp, "student": d.student.name, "type": "recognition"}
+        {
+            "time_display": fmt_datetime(d.timestamp),
+            "student": d.student.name,
+            "type": "recognition",
+        }
         for d in detections[:100]
+    ]
+    unknown_faces = [
+        {
+            "timestamp_display": fmt_datetime(u.timestamp),
+            "confidence": u.confidence,
+        }
+        for u in unknown
     ]
     return render(
         request,
         "attendance/sessions/detail.html",
         {
             "session": session,
+            "session_start_display": fmt_datetime(session.start_time),
+            "session_end_display": fmt_datetime(session.end_time),
             "summaries": summaries,
             "detections": detections[:50],
-            "unknown_faces": unknown,
+            "unknown_faces": unknown_faces,
             "timeline": timeline,
             "attendance_percent": session_attendance_percent(session),
             "recognition_percent": session_recognition_percent(session),

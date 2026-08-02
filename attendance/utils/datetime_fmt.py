@@ -2,9 +2,9 @@
 Canonical date/time formatting for Univera.
 
 Storage (USE_TZ=True): UTC in the database via timezone.now().
-Display: always Africa/Dar_es_Salaam wall time via Django timezone.localtime().
+Display: East Africa Time (EAT) — Africa/Dar_es_Salaam, UTC+3.
 
-Recognition / lecturer-facing format (example):
+Lecturer-facing format example:
   Aug 02, 23:14:24
 """
 
@@ -14,8 +14,9 @@ from zoneinfo import ZoneInfo
 from django.utils import timezone
 from django.utils.dateformat import format as dj_format
 
-# Explicit display zone — matches navbar clock and middleware activation
+# East Africa Time (EAT) — single source of truth for all UI timestamps
 DISPLAY_TZ_NAME = "Africa/Dar_es_Salaam"
+DISPLAY_TZ_LABEL = "EAT"
 DISPLAY_TZ = ZoneInfo(DISPLAY_TZ_NAME)
 UTC = dt_timezone.utc
 
@@ -26,16 +27,15 @@ DATETIME_DJ = "M d, H:i:s"  # Aug 02, 23:14:24
 
 
 def local_now():
-    """Current timezone-aware datetime in Africa/Dar_es_Salaam."""
+    """Current timezone-aware datetime in East Africa Time (EAT)."""
     return timezone.localtime(timezone.now(), DISPLAY_TZ)
 
 
 def to_local(value):
     """
-    Convert any datetime to Africa/Dar_es_Salaam for display.
+    Convert any datetime to East Africa Time (EAT) for display.
 
-    With USE_TZ=True, DB values are UTC. Naive values are treated as UTC
-    (Django's SQLite convention when USE_TZ is enabled).
+    With USE_TZ=True, DB values are UTC. Naive values are treated as UTC.
     """
     if value is None:
         return None
@@ -47,7 +47,7 @@ def to_local(value):
 
 
 def fmt_date(value):
-    """Format a date or datetime as MMM DD, YYYY — e.g. Aug 02, 2026."""
+    """Format a date or datetime as MMM DD, YYYY — e.g. Aug 02, 2026 (EAT)."""
     if value is None or value == "":
         return "—"
     value = to_local(value)
@@ -59,7 +59,7 @@ def fmt_date(value):
 
 
 def fmt_time(value):
-    """Format a time or datetime as HH:MM:SS (24-hour, Dar es Salaam)."""
+    """Format a time or datetime as HH:MM:SS in East Africa Time."""
     if value is None or value == "":
         return "—"
     value = to_local(value)
@@ -72,9 +72,9 @@ def fmt_time(value):
 
 def fmt_datetime(value):
     """
-    Format a datetime as local Tanzania time for lecturers.
+    Format a datetime in East Africa Time for lecturers.
 
-    Example: recognition at 23:14:24 Dar → "Aug 02, 23:14:24"
+    Example: face captured at 23:14:24 EAT → "Aug 02, 23:14:24"
     Never returns raw UTC clock time.
     """
     if value is None or value == "":

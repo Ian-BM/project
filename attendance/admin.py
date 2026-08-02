@@ -103,7 +103,7 @@ class DetectionAdmin(admin.ModelAdmin):
     list_filter = ("session",)
     search_fields = ("student__name",)
 
-    @admin.display(description="Timestamp", ordering="timestamp")
+    @admin.display(description="Timestamp (EAT)", ordering="timestamp")
     def timestamp_local(self, obj):
         from attendance.utils.datetime_fmt import fmt_datetime
 
@@ -127,7 +127,7 @@ class UnknownFaceAdmin(admin.ModelAdmin):
     list_display = ("session", "tracking_id", "confidence", "timestamp_local")
     list_filter = ("session",)
 
-    @admin.display(description="Timestamp", ordering="timestamp")
+    @admin.display(description="Timestamp (EAT)", ordering="timestamp")
     def timestamp_local(self, obj):
         from attendance.utils.datetime_fmt import fmt_datetime
 
@@ -143,19 +143,37 @@ class AssessmentAdmin(admin.ModelAdmin):
 
 @admin.register(PerformanceRecord)
 class PerformanceRecordAdmin(admin.ModelAdmin):
-    list_display = ("student", "assessment", "marks", "recorded_at", "recorded_by")
+    list_display = ("student", "assessment", "marks", "recorded_at_local", "recorded_by")
     list_filter = ("assessment__module", "assessment__assessment_type")
     search_fields = ("student__name", "assessment__title")
+
+    @admin.display(description="Recorded at (EAT)", ordering="recorded_at")
+    def recorded_at_local(self, obj):
+        from attendance.utils.datetime_fmt import fmt_datetime
+
+        return fmt_datetime(obj.recorded_at)
 
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ("title", "user", "notification_type", "is_read", "created_at")
+    list_display = ("title", "user", "notification_type", "is_read", "created_at_local")
     list_filter = ("notification_type", "is_read")
     search_fields = ("title", "message", "user__username")
+
+    @admin.display(description="Created (EAT)", ordering="created_at")
+    def created_at_local(self, obj):
+        from attendance.utils.datetime_fmt import fmt_datetime
+
+        return fmt_datetime(obj.created_at)
 
 
 @admin.register(ReportLog)
 class ReportLogAdmin(admin.ModelAdmin):
-    list_display = ("report_type", "generated_by", "created_at")
+    list_display = ("report_type", "generated_by", "created_at_local")
     list_filter = ("report_type",)
+
+    @admin.display(description="Created (EAT)", ordering="created_at")
+    def created_at_local(self, obj):
+        from attendance.utils.datetime_fmt import fmt_datetime
+
+        return fmt_datetime(obj.created_at)
