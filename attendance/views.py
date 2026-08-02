@@ -17,6 +17,7 @@ from django.views.decorators.http import require_GET, require_POST
 from .models import AttendanceSummary, Course, Detection, Module, Session, Student
 from .services.dashboard_stats import build_dashboard_context, get_live_attendance_rows
 from .services.recognition_details import recognize_faces_detailed
+from .utils.datetime_fmt import fmt_datetime
 
 
 def _active_session(user):
@@ -152,6 +153,7 @@ def recognize_view(request):
         "unknown_count": sum(1 for f in face_details if f.get("name") == "Unknown"),
         "image_width": image_width if "image_width" in locals() else 0,
         "image_height": image_height if "image_height" in locals() else 0,
+        "recorded_at": fmt_datetime(now),
     })
 
 
@@ -263,7 +265,7 @@ def start_session_view(request):
         teacher=request.user,
         module=module,
         name=f"{module.code} Session" if module else "Attendance Session",
-        date=now.date(),
+        date=timezone.localdate(),
         start_time=now,
         is_active=True,
         status=Session.STATUS_ACTIVE,

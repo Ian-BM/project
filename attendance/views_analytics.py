@@ -19,7 +19,7 @@ from attendance.services.academic import build_ai_insights, leaderboard_data
 
 @login_required
 def analytics_dashboard(request):
-    today = timezone.now().date()
+    today = timezone.localdate()
 
     weekly_labels, weekly_att, weekly_conf = [], [], []
     for i in range(6, -1, -1):

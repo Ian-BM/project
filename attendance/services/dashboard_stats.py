@@ -4,6 +4,8 @@ from decimal import Decimal
 from django.db.models import Avg, Count, Q, Sum
 from django.utils import timezone
 
+from attendance.utils.datetime_fmt import fmt_datetime, fmt_time
+
 from attendance.models import (
     AttendanceSummary,
     Course,
@@ -17,7 +19,7 @@ from attendance.models import (
     Student,
     StudentProfile,
 )
-from attendance.utils.datetime_fmt import fmt_time
+from attendance.utils.datetime_fmt import fmt_datetime, fmt_time
 
 
 def _teacher_sessions(user):
@@ -25,7 +27,7 @@ def _teacher_sessions(user):
 
 
 def _today_sessions(user):
-    today = timezone.now().date()
+    today = timezone.localdate()
     return _teacher_sessions(user).filter(date=today)
 
 
@@ -56,7 +58,7 @@ def student_attendance_percent(student):
 
 
 def build_dashboard_context(user):
-    today = timezone.now().date()
+    today = timezone.localdate()
     sessions = _teacher_sessions(user)
     active = _active_session(user)
     latest = _latest_session(user)
@@ -204,7 +206,7 @@ def _build_alerts(user, total_students, present_today, avg_confidence):
 
 
 def build_chart_data(user):
-    today = timezone.now().date()
+    today = timezone.localdate()
     weekly_labels = []
     weekly_values = []
     for i in range(6, -1, -1):
@@ -303,7 +305,9 @@ def get_live_attendance_rows(session):
             {
                 "student_id": sid,
                 "name": data["name"],
-                "recognition_time": fmt_time(data["last_seen"]),
+                "recognition_time": fmt_datetime(data["last_seen"]),
+                "first_seen": fmt_datetime(data["first_seen"]),
+                "last_seen": fmt_datetime(data["last_seen"]),
                 "confidence": round(confidence, 4),
                 "confidence_percent": round(confidence * 100, 1),
                 "status": status,

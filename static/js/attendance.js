@@ -210,7 +210,8 @@ const AttendanceApp = {
 
       students.forEach((name) => {
         const li = document.createElement("li");
-        li.textContent = name;
+        const when = data.recorded_at ? ` · ${data.recorded_at}` : "";
+        li.textContent = `${name}${when}`;
         this.studentsEl.appendChild(li);
       });
 

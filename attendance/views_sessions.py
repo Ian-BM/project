@@ -119,7 +119,7 @@ def session_create(request):
         form = SessionForm(
             user=request.user,
             initial={
-                "date": timezone.now().date(),
+                "date": timezone.localdate(),
                 "start_time": timezone.now(),
                 "status": Session.STATUS_UPCOMING,
             },
