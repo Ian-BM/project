@@ -23,14 +23,15 @@ from .models import (
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ("name", "code", "created_at")
+    list_display = ("name", "code", "head_of_department", "status", "created_at")
+    list_filter = ("status",)
     search_fields = ("name", "code")
 
 
 @admin.register(Programme)
 class ProgrammeAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "department", "duration_years", "created_at")
-    list_filter = ("department",)
+    list_display = ("code", "name", "department", "duration_years", "status", "created_at")
+    list_filter = ("department", "status")
     search_fields = ("name", "code")
 
 
@@ -49,8 +50,8 @@ class StudentAdmin(admin.ModelAdmin):
 @admin.register(StudentProfile)
 class StudentProfileAdmin(admin.ModelAdmin):
     list_display = (
-        "student", "registration_number", "programme", "department", "status",
-        "recognition_status", "risk_level", "average_grade",
+        "student", "registration_number", "programme", "department", "year_of_study", "status",
+        "recognition_status", "risk_level",
     )
     list_filter = ("status", "recognition_status", "risk_level", "department", "programme")
     search_fields = ("student__name", "registration_number", "email")
@@ -69,8 +70,8 @@ class ModuleEnrollmentInline(admin.TabularInline):
 
 @admin.register(Module)
 class ModuleAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "programme", "department", "teacher", "semester", "credits")
-    list_filter = ("programme", "department", "semester", "academic_year")
+    list_display = ("code", "name", "programme", "department", "teacher", "semester", "credits", "status")
+    list_filter = ("programme", "department", "semester", "academic_year", "status")
     search_fields = ("name", "code")
     inlines = [ModuleEnrollmentInline]
 

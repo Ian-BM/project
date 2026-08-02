@@ -20,7 +20,7 @@
 {% block page_header %}
 <div class="page-header">
     <div class="page-header-text">
-        <h1>Dashboard</h1>
+        <h1>Lecturer Dashboard</h1>
         <p class="page-header-subtitle">Real-time overview of attendance, recognition, and academic activity.</p>
     </div>
     <div class="page-header-actions">
@@ -33,14 +33,15 @@
 
 {% block content %}
 <div class="kpi-grid">
-    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="users"></i></div></div><div class="stat-card-value">{{ kpis.total_students }}</div><div class="stat-card-label">Total Students</div></div>
-    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--success"><i data-lucide="user-check"></i></div></div><div class="stat-card-value">{{ kpis.present_today }}</div><div class="stat-card-label">Present Today</div></div>
-    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--danger"><i data-lucide="user-x"></i></div></div><div class="stat-card-value">{{ kpis.absent_today }}</div><div class="stat-card-label">Absent Today</div></div>
-    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--success"><i data-lucide="percent"></i></div></div><div class="stat-card-value">{{ kpis.attendance_rate }}%</div><div class="stat-card-label">Attendance Rate</div></div>
-    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="scan-face"></i></div></div><div class="stat-card-value">{{ kpis.recognition_accuracy }}%</div><div class="stat-card-label">Recognition Accuracy</div></div>
-    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--warning"><i data-lucide="gauge"></i></div></div><div class="stat-card-value">{{ kpis.average_confidence }}%</div><div class="stat-card-label">Avg Confidence</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="users"></i></div></div><div class="stat-card-value">{{ kpis.total_students }}</div><div class="stat-card-label">Students</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="building-2"></i></div></div><div class="stat-card-value">{{ kpis.departments }}</div><div class="stat-card-label">Departments</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="graduation-cap"></i></div></div><div class="stat-card-value">{{ kpis.programmes }}</div><div class="stat-card-label">Programmes</div></div>
     <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="book-open"></i></div></div><div class="stat-card-value">{{ kpis.modules }}</div><div class="stat-card-label">Modules</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="user-cog"></i></div></div><div class="stat-card-value">{{ kpis.lecturers }}</div><div class="stat-card-label">Lecturers</div></div>
     <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--warning"><i data-lucide="radio"></i></div></div><div class="stat-card-value">{{ kpis.active_sessions }}</div><div class="stat-card-label">Active Sessions</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--primary"><i data-lucide="scan-face"></i></div></div><div class="stat-card-value">{{ kpis.recognition_accuracy }}%</div><div class="stat-card-label">Recognition Accuracy</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--success"><i data-lucide="percent"></i></div></div><div class="stat-card-value">{{ kpis.attendance_rate }}%</div><div class="stat-card-label">Attendance Rate</div></div>
+    <div class="stat-card"><div class="stat-card-header"><div class="stat-card-icon stat-card-icon--warning"><i data-lucide="gauge"></i></div></div><div class="stat-card-value">{{ kpis.average_confidence }}%</div><div class="stat-card-label">Confidence</div></div>
 </div>
 
 <div class="dashboard-grid-2">
@@ -48,7 +49,7 @@
         <div class="card-header"><div class="card-header-title"><div class="card-header-icon"><i data-lucide="radio"></i></div><h3>Live Session Status</h3></div>{% if live_status.has_active %}<span class="badge badge-danger">LIVE</span>{% else %}<span class="badge badge-neutral">Idle</span>{% endif %}</div>
         <div class="card-body live-status-grid">
             <div><span class="text-muted">Session</span><strong>{% if live_status.session_id %}#{{ live_status.session_id }}{% else %}—{% endif %}</strong></div>
-            <div><span class="text-muted">Teacher</span><strong>{{ live_status.teacher_name }}</strong></div>
+            <div><span class="text-muted">Lecturer</span><strong>{{ live_status.lecturer_name }}</strong></div>
             <div><span class="text-muted">Module</span><strong>{{ live_status.module_name }}</strong></div>
             <div><span class="text-muted">Students Detected</span><strong id="dashStudentsDetected">{{ live_status.students_detected }}</strong></div>
             <div><span class="text-muted">Frames Processed</span><strong id="dashFramesProcessed">{{ live_status.frames_processed }}</strong></div>
@@ -81,7 +82,7 @@
         <div class="card-header"><h3>Recent Sessions</h3></div>
         <div class="card-body activity-list">
             {% for s in recent_sessions %}
-            <div class="activity-item"><div class="activity-icon"><i data-lucide="calendar"></i></div><div><strong><a href="{% url 'session_detail' s.id %}">Session #{{ s.id }}</a></strong><p class="text-muted">{{ s.end_time|date:"M d, H:i" }}{% if s.module %} · {{ s.module.code }}{% elif s.course %} · {{ s.course.code }}{% endif %}</p></div></div>
+            <div class="activity-item"><div class="activity-icon"><i data-lucide="calendar"></i></div><div><strong><a href="{% url 'session_detail' s.id %}">Session #{{ s.id }}</a></strong><p class="text-muted">{{ s.end_time|date:"M d, H:i" }}{% if s.module %} · {{ s.module.code }}{% endif %}</p></div></div>
             {% empty %}<p class="text-muted">No sessions yet.</p>{% endfor %}
         </div>
     </div>

@@ -121,7 +121,7 @@ def report_view(request, report_type):
                     "Session": s.id,
                     "Name": s.name or f"Session {s.id}",
                     "Module": s.module.code if s.module else "—",
-                    "Teacher": s.teacher.get_full_name() or s.teacher.username,
+                    "Lecturer": s.teacher.get_full_name() or s.teacher.username,
                     "Date": s.date,
                     "Status": s.get_status_display(),
                     "Attendance %": session_attendance_percent(s),
@@ -154,7 +154,7 @@ def report_view(request, report_type):
                     "Code": module.code,
                     "Name": module.name,
                     "Programme": module.programme.code if module.programme else "—",
-                    "Teacher": (module.teacher.get_full_name() or module.teacher.username)
+                    "Lecturer": (module.teacher.get_full_name() or module.teacher.username)
                     if module.teacher
                     else "—",
                     "Attendance %": round(present / total * 100, 1),
@@ -184,7 +184,7 @@ def report_view(request, report_type):
             avg = summaries.aggregate(a=Avg("confidence_score"))["a"] or 0
             rows.append(
                 {
-                    "Teacher": teacher.get_full_name() or teacher.username,
+                    "Lecturer": teacher.get_full_name() or teacher.username,
                     "Sessions": sessions.count(),
                     "Modules": Module.objects.filter(teacher=teacher).count(),
                     "Avg Confidence %": round(float(avg) * 100, 1),

@@ -4,10 +4,26 @@ from django.utils import timezone
 
 
 class Department(models.Model):
+    STATUS_ACTIVE = "active"
+    STATUS_INACTIVE = "inactive"
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_INACTIVE, "Inactive"),
+    ]
+
     name = models.CharField(max_length=255, unique=True)
     code = models.CharField(max_length=20, unique=True)
     description = models.TextField(blank=True)
+    head_of_department = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="headed_departments",
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["name"]
@@ -19,6 +35,13 @@ class Department(models.Model):
 class Programme(models.Model):
     """Academic degree / programme a student belongs to (e.g. BSc Computer Science)."""
 
+    STATUS_ACTIVE = "active"
+    STATUS_INACTIVE = "inactive"
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_INACTIVE, "Inactive"),
+    ]
+
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=50, unique=True)
     department = models.ForeignKey(
@@ -26,6 +49,7 @@ class Programme(models.Model):
     )
     duration_years = models.PositiveIntegerField(default=4)
     description = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -82,8 +106,10 @@ class StudentProfile(models.Model):
         Programme, on_delete=models.SET_NULL, null=True, blank=True, related_name="students"
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
+    year_of_study = models.PositiveIntegerField(null=True, blank=True)
     recognition_status = models.CharField(max_length=20, choices=RECOG_CHOICES, default=RECOG_PENDING)
     risk_level = models.CharField(max_length=20, choices=RISK_CHOICES, default=RISK_LOW)
+    # Kept for legacy data; not used by the UI after Performance module removal
     average_grade = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     notes = models.TextField(blank=True)
     teacher = models.ForeignKey(
@@ -125,6 +151,13 @@ class StudentImage(models.Model):
 class Module(models.Model):
     """Individual subject taught by a lecturer (formerly Course)."""
 
+    STATUS_ACTIVE = "active"
+    STATUS_INACTIVE = "inactive"
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_INACTIVE, "Inactive"),
+    ]
+
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=50, unique=True)
     programme = models.ForeignKey(
@@ -140,6 +173,7 @@ class Module(models.Model):
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name="modules"
     )
     description = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -409,6 +443,7 @@ class ReportLog(models.Model):
     REPORT_PROGRAMME = "programme"
     REPORT_MODULE = "module"
     REPORT_TEACHER = "teacher"
+    REPORT_LECTURER = "teacher"  # alias — report_type value stays "teacher" for DB compat
     REPORT_STUDENT = "student"
     REPORT_SESSION = "session"
     REPORT_RECOGNITION = "recognition"
@@ -417,7 +452,7 @@ class ReportLog(models.Model):
         (REPORT_ATTENDANCE, "Attendance Report"),
         (REPORT_PROGRAMME, "Programme Report"),
         (REPORT_MODULE, "Module Report"),
-        (REPORT_TEACHER, "Teacher Report"),
+        (REPORT_TEACHER, "Lecturer Report"),
         (REPORT_STUDENT, "Student Report"),
         (REPORT_SESSION, "Session Report"),
         (REPORT_RECOGNITION, "Recognition Report"),

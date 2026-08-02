@@ -1,0 +1,37 @@
+<script>
+(function () {
+  var dept = document.getElementById("id_department");
+  var prog = document.getElementById("id_programme");
+  if (!dept || !prog) return;
+
+  var current = prog.value;
+
+  function loadProgrammes(departmentId, selected) {
+    prog.innerHTML = '<option value="">---------</option>';
+    if (!departmentId) return;
+    fetch("/api/programmes/?department=" + encodeURIComponent(departmentId), {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      credentials: "same-origin",
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        (data.programmes || []).forEach(function (p) {
+          var opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = p.code + " — " + p.name;
+          if (String(selected) === String(p.id)) opt.selected = true;
+          prog.appendChild(opt);
+        });
+      })
+      .catch(function () {});
+  }
+
+  dept.addEventListener("change", function () {
+    loadProgrammes(dept.value, null);
+  });
+
+  if (dept.value) {
+    loadProgrammes(dept.value, current);
+  }
+})();
+</script>

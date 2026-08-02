@@ -23,7 +23,7 @@
 <div class="card">
     <table class="data-table">
         <thead><tr>
-            <th>Code</th><th>Name</th><th>Programme</th><th>Department</th><th>Teacher</th><th>Students</th>
+            <th>Code</th><th>Name</th><th>Programme</th><th>Department</th><th>Lecturer</th><th>Students</th>
             <th>Attendance %</th><th>Recognition %</th><th>Actions</th>
         </tr></thead>
         <tbody>
@@ -33,7 +33,7 @@
             <td>{{ row.module.name }}</td>
             <td>{{ row.module.programme.code|default:"—" }}</td>
             <td>{{ row.module.department.name|default:"—" }}</td>
-            <td>{{ row.module.teacher.get_full_name|default:row.module.teacher.username|default:"—" }}</td>
+            <td>{% if row.module.teacher %}{{ row.module.teacher.get_full_name|default:row.module.teacher.username }}{% else %}—{% endif %}</td>
             <td>{{ row.students }}</td>
             <td>{{ row.attendance_percent }}%</td>
             <td>{{ row.recognition_percent }}%</td>

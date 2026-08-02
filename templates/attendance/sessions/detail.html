@@ -40,7 +40,7 @@
   <div class="card"><div class="card-header"><h3>Session Information</h3></div><div class="card-body">
     <p><strong>Programme:</strong> {{ session.programme.code|default:"—" }} — {{ session.programme.name|default:"" }}</p>
     <p class="mt-2"><strong>Module:</strong> {% if session.module %}<a href="{% url 'module_detail' session.module.pk %}">{{ session.module.code }} — {{ session.module.name }}</a>{% else %}—{% endif %}</p>
-    <p class="mt-2"><strong>Teacher:</strong> {{ session.teacher.get_full_name|default:session.teacher.username }}</p>
+    <p class="mt-2"><strong>Lecturer:</strong> {{ session.teacher.get_full_name|default:session.teacher.username }}</p>
     <p class="mt-2"><strong>Room:</strong> {{ session.room|default:"—" }}</p>
     <p class="mt-2"><strong>Date:</strong> {{ session.date }}</p>
     <p class="mt-2"><strong>Start:</strong> {{ session.start_time|date:"M d, H:i"|default:"—" }}</p>

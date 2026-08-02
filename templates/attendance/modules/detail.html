@@ -23,32 +23,21 @@
     <div class="stat-card"><div class="stat-card-value">{{ sessions_count }}</div><div class="stat-card-label">Sessions</div></div>
     <div class="stat-card"><div class="stat-card-value">{{ stats.attendance_percent }}%</div><div class="stat-card-label">Attendance %</div></div>
     <div class="stat-card"><div class="stat-card-value">{{ stats.recognition_percent }}%</div><div class="stat-card-label">Recognition %</div></div>
-    <div class="stat-card"><div class="stat-card-value">{{ stats.avg_marks|default:"—" }}{% if stats.avg_marks %}%{% endif %}</div><div class="stat-card-label">Average Marks</div></div>
-    <div class="stat-card"><div class="stat-card-value">{{ stats.pass_rate|default:"—" }}{% if stats.pass_rate %}%{% endif %}</div><div class="stat-card-label">Pass Rate</div></div>
+    <div class="stat-card"><div class="stat-card-value">{{ module.credits }}</div><div class="stat-card-label">Credits</div></div>
 </div>
 
 <div class="grid-2 mb-6">
     <div class="card"><div class="card-header"><h3>Module Information</h3></div><div class="card-body">
         <p><strong>Programme:</strong> {% if module.programme %}<a href="{% url 'programme_detail' module.programme.pk %}">{{ module.programme.code }} — {{ module.programme.name }}</a>{% else %}—{% endif %}</p>
-        <p class="mt-2"><strong>Teacher:</strong> {{ module.teacher.get_full_name|default:module.teacher.username|default:"—" }}</p>
-        <p class="mt-2"><strong>Credits:</strong> {{ module.credits }}</p>
+        <p class="mt-2"><strong>Department:</strong> {% if module.department %}<a href="{% url 'department_detail' module.department.pk %}">{{ module.department.name }}</a>{% else %}—{% endif %}</p>
+        <p class="mt-2"><strong>Assigned Lecturer:</strong> {% if module.teacher %}{{ module.teacher.get_full_name|default:module.teacher.username }}{% else %}—{% endif %}</p>
+        <p class="mt-2"><strong>Status:</strong> {{ module.get_status_display }}</p>
         <p class="mt-2"><strong>Description:</strong> {{ module.description|default:"No description." }}</p>
     </div></div>
     <div class="card"><div class="card-header"><h3>Recent Sessions</h3></div><div class="card-body activity-list">
         {% for s in sessions %}<div class="activity-item"><a href="{% url 'session_detail' s.pk %}"><strong>{{ s.name|default:"Session" }} #{{ s.id }}</strong></a><p class="text-muted">{{ s.start_time|date:"M d, H:i" }} — {{ s.get_status_display }}</p></div>{% empty %}<p class="text-muted">No sessions.</p>{% endfor %}
     </div></div>
 </div>
-
-{% if performers.highest or performers.lowest %}
-<div class="grid-2 mb-6">
-  <div class="card"><div class="card-header"><h3>Highest Performer</h3></div><div class="card-body">
-    {% if performers.highest %}<strong>{{ performers.highest.student.name }}</strong> — {{ performers.highest.percentage }}%{% else %}<span class="text-muted">—</span>{% endif %}
-  </div></div>
-  <div class="card"><div class="card-header"><h3>Lowest Performer</h3></div><div class="card-body">
-    {% if performers.lowest %}<strong>{{ performers.lowest.student.name }}</strong> — {{ performers.lowest.percentage }}%{% else %}<span class="text-muted">—</span>{% endif %}
-  </div></div>
-</div>
-{% endif %}
 
 <div class="card"><div class="card-header"><h3>Enrolled Students</h3></div>
     <table class="data-table"><thead><tr><th>Name</th><th>Registration</th><th>Attendance %</th><th>Actions</th></tr></thead>
@@ -60,7 +49,6 @@
         <td>
             <form method="post" action="{% url 'module_unenroll' module.pk row.student.pk %}" style="display:inline;">{% csrf_token %}
             <button class="btn btn-sm btn-ghost" type="submit">Remove</button></form>
-            <a href="{% url 'student_performance' row.student.pk %}" class="btn btn-sm btn-ghost">Performance</a>
         </td>
     </tr>
     {% empty %}<tr><td colspan="4" class="text-muted">No students enrolled.</td></tr>{% endfor %}</tbody></table>

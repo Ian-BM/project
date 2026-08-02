@@ -4,10 +4,13 @@
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
 {% block page_header %}
 <div class="page-header">
-  <div class="page-header-text"><h1>{{ programme.code }} — {{ programme.name }}</h1><p class="page-header-subtitle">{{ programme.department.name|default:"No department" }}</p></div>
+  <div class="page-header-text"><h1>{{ programme.code }} — {{ programme.name }}</h1><p class="page-header-subtitle">{{ programme.department.name|default:"No department" }} · {{ programme.get_status_display }}</p></div>
   <div class="page-header-actions">
     <a href="{% url 'programme_enroll' programme.pk %}" class="btn btn-primary">Enroll Students</a>
     <a href="{% url 'programme_edit' programme.pk %}" class="btn btn-secondary">Edit</a>
+    <form method="post" action="{% url 'programme_delete' programme.pk %}" style="display:inline;" onsubmit="return confirm('Delete this programme? Only allowed if no students or modules are linked.');">{% csrf_token %}
+      <button class="btn btn-danger" type="submit">Delete</button>
+    </form>
   </div>
 </div>
 {% endblock %}
@@ -15,18 +18,23 @@
 <div class="stat-grid mb-6">
   <div class="stat-card"><div class="stat-card-value">{{ stats.students }}</div><div class="stat-card-label">Students</div></div>
   <div class="stat-card"><div class="stat-card-value">{{ stats.modules }}</div><div class="stat-card-label">Modules</div></div>
-  <div class="stat-card"><div class="stat-card-value">{{ stats.attendance_percent }}%</div><div class="stat-card-label">Avg Attendance</div></div>
-  <div class="stat-card"><div class="stat-card-value">{{ stats.avg_performance|default:"—" }}{% if stats.avg_performance %}%{% endif %}</div><div class="stat-card-label">Avg Performance</div></div>
-  <div class="stat-card"><div class="stat-card-value">{{ stats.recognition_percent }}%</div><div class="stat-card-label">Recognition Accuracy</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ stats.attendance_percent }}%</div><div class="stat-card-label">Attendance Summary</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ stats.recognition_percent }}%</div><div class="stat-card-label">Recognition Summary</div></div>
   <div class="stat-card"><div class="stat-card-value">{{ stats.confidence_average }}%</div><div class="stat-card-label">Confidence Average</div></div>
 </div>
 <div class="grid-2">
+  <div class="card"><div class="card-header"><h3>Programme Information</h3></div><div class="card-body">
+    <p><strong>Department:</strong> {% if programme.department %}<a href="{% url 'department_detail' programme.department.pk %}">{{ programme.department.name }}</a>{% else %}—{% endif %}</p>
+    <p class="mt-2"><strong>Duration:</strong> {{ programme.duration_years }} years</p>
+    <p class="mt-2"><strong>Status:</strong> {{ programme.get_status_display }}</p>
+    <p class="mt-2"><strong>Description:</strong> {{ programme.description|default:"No description." }}</p>
+  </div></div>
   <div class="card"><div class="card-header"><h3>Modules</h3></div><div class="card-body">
     {% for m in modules %}<div class="activity-item"><a href="{% url 'module_detail' m.pk %}"><strong>{{ m.code }}</strong> — {{ m.name }}</a></div>{% empty %}<p class="text-muted">No modules linked.</p>{% endfor %}
   </div></div>
-  <div class="card"><div class="card-header"><h3>Students</h3></div>
-    <table class="data-table"><thead><tr><th>Name</th><th>Attendance %</th></tr></thead>
-    <tbody>{% for row in student_rows %}<tr><td><a href="{% url 'student_detail' row.student.pk %}">{{ row.student.name }}</a></td><td>{{ row.attendance_percent }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">No students.</td></tr>{% endfor %}</tbody></table>
-  </div>
+</div>
+<div class="card mt-6"><div class="card-header"><h3>Students</h3></div>
+  <table class="data-table"><thead><tr><th>Name</th><th>Attendance %</th></tr></thead>
+  <tbody>{% for row in student_rows %}<tr><td><a href="{% url 'student_detail' row.student.pk %}">{{ row.student.name }}</a></td><td>{{ row.attendance_percent }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">No students.</td></tr>{% endfor %}</tbody></table>
 </div>
 {% endblock %}

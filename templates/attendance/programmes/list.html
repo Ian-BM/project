@@ -16,21 +16,28 @@
   <button class="btn btn-primary btn-sm" type="submit">Filter</button>
 </form>
 <div class="card"><table class="data-table">
-<thead><tr><th>Code</th><th>Name</th><th>Department</th><th>Students</th><th>Modules</th><th>Attendance %</th><th>Performance</th><th>Actions</th></tr></thead>
+<thead><tr><th>Name</th><th>Code</th><th>Department</th><th>Duration</th><th>Modules</th><th>Students</th><th>Status</th><th>Actions</th></tr></thead>
 <tbody>
 {% for row in rows %}
 <tr>
-  <td><a href="{% url 'programme_detail' row.programme.pk %}" class="font-medium">{{ row.programme.code }}</a></td>
-  <td>{{ row.programme.name }}</td>
+  <td><a href="{% url 'programme_detail' row.programme.pk %}" class="font-medium">{{ row.programme.name }}</a></td>
+  <td>{{ row.programme.code }}</td>
   <td>{{ row.programme.department.name|default:"—" }}</td>
-  <td>{{ row.students }}</td>
+  <td>{{ row.programme.duration_years }} yr</td>
   <td>{{ row.modules }}</td>
-  <td>{{ row.attendance_percent }}%</td>
-  <td>{{ row.avg_performance|default:"—" }}{% if row.avg_performance %}%{% endif %}</td>
-  <td><a href="{% url 'programme_detail' row.programme.pk %}" class="btn btn-sm btn-ghost">View</a></td>
+  <td>{{ row.students }}</td>
+  <td><span class="badge badge-{% if row.programme.status == 'active' %}success{% else %}neutral{% endif %}">{{ row.programme.get_status_display }}</span></td>
+  <td>
+    <a href="{% url 'programme_detail' row.programme.pk %}" class="btn btn-sm btn-ghost">View</a>
+    <a href="{% url 'programme_edit' row.programme.pk %}" class="btn btn-sm btn-ghost">Edit</a>
+  </td>
 </tr>
 {% empty %}
 <tr><td colspan="8"><div class="empty-state"><h3>No programmes yet</h3><a href="{% url 'programme_create' %}" class="btn btn-primary">Create Programme</a></div></td></tr>
 {% endfor %}
-</tbody></table></div>
+</tbody></table>
+{% if page_obj.has_other_pages %}
+<div class="table-pagination"><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></div>
+{% endif %}
+</div>
 {% endblock %}

@@ -82,16 +82,6 @@ def module_detail(request, pk):
         for e in enrollments
     ]
     stats = module_stats(module)
-    from attendance.models import PerformanceRecord
-
-    records = list(
-        PerformanceRecord.objects.filter(assessment__module=module).select_related("student")
-    )
-    ranked = sorted(records, key=lambda r: r.percentage, reverse=True)
-    performers = {
-        "highest": ranked[0] if ranked else None,
-        "lowest": ranked[-1] if ranked else None,
-    }
     return render(
         request,
         "attendance/modules/detail.html",
@@ -103,7 +93,6 @@ def module_detail(request, pk):
             "enrollment_count": enrollments.count(),
             "stats": stats,
             "avg_confidence": stats["recognition_percent"],
-            "performers": performers,
         },
     )
 

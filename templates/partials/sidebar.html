@@ -13,6 +13,7 @@
             <li><a href="{% url 'dashboard' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="layout-dashboard"></i></span><span class="sidebar-nav-label">Dashboard</span></a></li>
             <li><a href="{% url 'index' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'index' %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="scan-face"></i></span><span class="sidebar-nav-label">Attendance</span></a></li>
             <li><a href="{% url 'student_list' %}" class="sidebar-nav-item {% if 'student' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="users"></i></span><span class="sidebar-nav-label">Students</span></a></li>
+            <li><a href="{% url 'department_list' %}" class="sidebar-nav-item {% if 'department' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="building-2"></i></span><span class="sidebar-nav-label">Departments</span></a></li>
             <li><a href="{% url 'programme_list' %}" class="sidebar-nav-item {% if 'programme' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="graduation-cap"></i></span><span class="sidebar-nav-label">Programmes</span></a></li>
             <li><a href="{% url 'module_list' %}" class="sidebar-nav-item {% if 'module' in request.resolver_match.url_name or 'course' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="book-open"></i></span><span class="sidebar-nav-label">Modules</span></a></li>
             <li><a href="{% url 'session_list' %}" class="sidebar-nav-item {% if 'session' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="calendar-clock"></i></span><span class="sidebar-nav-label">Sessions</span></a></li>
@@ -20,7 +21,6 @@
 
         <div class="sidebar-section-label">Analytics</div>
         <ul class="sidebar-nav-list">
-            <li><a href="{% url 'performance_dashboard' %}" class="sidebar-nav-item {% if 'performance' in request.resolver_match.url_name or 'assessment' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="trending-up"></i></span><span class="sidebar-nav-label">Performance</span></a></li>
             <li><a href="{% url 'confidence_dashboard' %}" class="sidebar-nav-item {% if 'confidence' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="gauge"></i></span><span class="sidebar-nav-label">Confidence</span></a></li>
             <li><a href="{% url 'reports_hub' %}" class="sidebar-nav-item {% if 'report' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="file-text"></i></span><span class="sidebar-nav-label">Reports</span></a></li>
             <li><a href="{% url 'analytics_dashboard' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'analytics_dashboard' %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="bar-chart-3"></i></span><span class="sidebar-nav-label">Analytics</span></a></li>
@@ -29,6 +29,8 @@
         <div class="sidebar-section-label">Account</div>
         <ul class="sidebar-nav-list">
             <li><a href="{% url 'notifications_list' %}" class="sidebar-nav-item {% if 'notification' in request.resolver_match.url_name %}active{% endif %}"><span class="sidebar-nav-icon"><i data-lucide="bell"></i></span><span class="sidebar-nav-label">Notifications</span></a></li>
+            <li><a href="#" class="sidebar-nav-item sidebar-nav-item--placeholder" data-nav="profile"><span class="sidebar-nav-icon"><i data-lucide="user"></i></span><span class="sidebar-nav-label">Profile</span></a></li>
+            <li><a href="#" class="sidebar-nav-item sidebar-nav-item--placeholder" data-nav="settings"><span class="sidebar-nav-icon"><i data-lucide="settings"></i></span><span class="sidebar-nav-label">Settings</span></a></li>
             <li><a href="{% url 'logout' %}" class="sidebar-nav-item"><span class="sidebar-nav-icon"><i data-lucide="log-out"></i></span><span class="sidebar-nav-label">Logout</span></a></li>
         </ul>
     </nav>

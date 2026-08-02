@@ -30,6 +30,10 @@
                     <span class="global-search-result-icon"><i data-lucide="users"></i></span>
                     <span>Students</span>
                 </a>
+                <a href="{% url 'department_list' %}" class="global-search-result">
+                    <span class="global-search-result-icon"><i data-lucide="building-2"></i></span>
+                    <span>Departments</span>
+                </a>
                 <a href="{% url 'programme_list' %}" class="global-search-result">
                     <span class="global-search-result-icon"><i data-lucide="graduation-cap"></i></span>
                     <span>Programmes</span>
@@ -127,7 +131,7 @@
             >
                 <div class="topbar-profile-info hide-mobile">
                     <div class="topbar-profile-name">{{ request.user.first_name|default:request.user.username }}</div>
-                    <div class="topbar-profile-role">Teacher</div>
+                    <div class="topbar-profile-role">Lecturer</div>
                 </div>
                 <span class="avatar avatar-md">
                     {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}

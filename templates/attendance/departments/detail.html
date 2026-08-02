@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ department.code }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+{% block page_header %}
+<div class="page-header">
+  <div class="page-header-text"><h1>{{ department.name }}</h1><p class="page-header-subtitle">{{ department.code }} · {{ department.get_status_display }}</p></div>
+  <div class="page-header-actions">
+    <a href="{% url 'department_edit' department.pk %}" class="btn btn-secondary">Edit</a>
+    <form method="post" action="{% url 'department_delete' department.pk %}" style="display:inline;" onsubmit="return confirm('Delete this department? This cannot be undone if it has no linked programmes or modules.');">{% csrf_token %}
+      <button class="btn btn-danger" type="submit">Delete</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="stat-grid mb-6">
+  <div class="stat-card"><div class="stat-card-value">{{ stats.programmes }}</div><div class="stat-card-label">Programmes</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ stats.modules }}</div><div class="stat-card-label">Modules</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ stats.lecturers }}</div><div class="stat-card-label">Lecturers</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ stats.students }}</div><div class="stat-card-label">Students</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ stats.attendance_percent }}%</div><div class="stat-card-label">Attendance</div></div>
+</div>
+
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Department Information</h3></div><div class="card-body">
+    <p><strong>Code:</strong> {{ department.code }}</p>
+    <p class="mt-2"><strong>Head of Department:</strong> {% if department.head_of_department %}{{ department.head_of_department.get_full_name|default:department.head_of_department.username }}{% else %}—{% endif %}</p>
+    <p class="mt-2"><strong>Status:</strong> {{ department.get_status_display }}</p>
+    <p class="mt-2"><strong>Description:</strong> {{ department.description|default:"No description." }}</p>
+  </div></div>
+  <div class="card"><div class="card-header"><h3>Programmes</h3></div><div class="card-body activity-list">
+    {% for p in programmes %}<div class="activity-item"><a href="{% url 'programme_detail' p.pk %}"><strong>{{ p.code }}</strong> — {{ p.name }}</a></div>{% empty %}<p class="text-muted">No programmes.</p>{% endfor %}
+  </div></div>
+</div>
+
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><h3>Modules</h3></div>
+    <table class="data-table"><thead><tr><th>Code</th><th>Name</th><th>Lecturer</th></tr></thead>
+    <tbody>{% for m in modules %}<tr><td><a href="{% url 'module_detail' m.pk %}">{{ m.code }}</a></td><td>{{ m.name }}</td><td>{% if m.teacher %}{{ m.teacher.get_full_name|default:m.teacher.username }}{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="3" class="text-muted">No modules.</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="card"><div class="card-header"><h3>Lecturers</h3></div><div class="card-body activity-list">
+    {% for l in lecturers %}<div class="activity-item"><strong>{{ l.get_full_name|default:l.username }}</strong></div>{% empty %}<p class="text-muted">No lecturers assigned.</p>{% endfor %}
+  </div></div>
+</div>
+
+<div class="grid-2">
+  <div class="card"><div class="card-header"><h3>Students</h3></div>
+    <table class="data-table"><thead><tr><th>Name</th><th>Programme</th><th>Attendance %</th></tr></thead>
+    <tbody>{% for row in student_rows %}<tr><td><a href="{% url 'student_detail' row.student.pk %}">{{ row.student.name }}</a></td><td>{{ row.profile.programme.code|default:"—" }}</td><td>{{ row.attendance_percent }}%</td></tr>{% empty %}<tr><td colspan="3" class="text-muted">No students.</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="card"><div class="card-header"><h3>Recent Activity</h3></div><div class="card-body activity-list">
+    {% for s in recent_sessions %}<div class="activity-item"><a href="{% url 'session_detail' s.pk %}"><strong>Session #{{ s.id }}</strong></a><p class="text-muted">{{ s.module.code|default:"" }} · {{ s.start_time|date:"M d, H:i" }} · {{ s.get_status_display }}</p></div>{% empty %}<p class="text-muted">No recent sessions.</p>{% endfor %}
+  </div></div>
+</div>
+{% endblock %}

@@ -10,7 +10,6 @@ from attendance.models import (
     Detection,
     Module,
     Notification,
-    PerformanceRecord,
     Programme,
     Session,
     Student,
@@ -58,18 +57,18 @@ def analytics_dashboard(request):
             row.append(min(count, 20))
         heatmap.append(row)
 
-    # Performance correlation sample
+    # Attendance vs confidence sample (replaces performance correlation)
     correlation = []
     for student in Student.objects.all()[:40]:
         from attendance.services.academic import (
             student_attendance_percent,
-            student_avg_performance,
+            student_avg_confidence,
         )
 
         att = student_attendance_percent(student)
-        perf = student_avg_performance(student)
-        if perf is not None:
-            correlation.append({"name": student.name, "attendance": att, "performance": perf})
+        conf = student_avg_confidence(student)
+        if att or conf:
+            correlation.append({"name": student.name, "attendance": att, "confidence": conf})
 
     leaders = leaderboard_data()
     # Sort best modules/programmes by attendance
@@ -81,6 +80,8 @@ def analytics_dashboard(request):
     )[:5]
 
     unread = Notification.objects.filter(user=request.user, is_read=False).count()
+
+    from attendance.models import Department
 
     chart_data = {
         "attendance_trends": {"labels": weekly_labels, "values": weekly_att},
@@ -107,6 +108,7 @@ def analytics_dashboard(request):
             "heatmap": heatmap,
             "kpis": {
                 "students": Student.objects.count(),
+                "departments": Department.objects.count(),
                 "programmes": Programme.objects.count(),
                 "modules": Module.objects.count(),
                 "sessions": Session.objects.count(),

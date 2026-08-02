@@ -51,6 +51,7 @@
         <div class="stat-grid" style="margin-bottom:1.5rem;">
             <div class="stat-card"><div class="stat-card-value">{{ attendance_percent }}%</div><div class="stat-card-label">Attendance Rate</div></div>
             <div class="stat-card"><div class="stat-card-value">{{ profile.programme.code|default:"—" }}</div><div class="stat-card-label">Programme</div></div>
+            <div class="stat-card"><div class="stat-card-value">{{ profile.year_of_study|default:"—" }}</div><div class="stat-card-label">Year of Study</div></div>
             <div class="stat-card"><div class="stat-card-value">{{ detections|length }}</div><div class="stat-card-label">Recognitions</div></div>
         </div>
 
@@ -59,7 +60,7 @@
             {% else %}<p class="text-muted">No programme assigned.</p>{% endif %}
         </div></div>
 
-        <div class="card mb-4"><div class="card-header"><div style="display:flex;justify-content:space-between;align-items:center;width:100%;"><h3>Modules Taken</h3><a href="{% url 'student_performance' student.pk %}" class="btn btn-sm btn-ghost">Performance</a></div></div><div class="card-body">
+        <div class="card mb-4"><div class="card-header"><div style="display:flex;justify-content:space-between;align-items:center;width:100%;"><h3>Modules Taken</h3></div></div><div class="card-body">
             {% for e in enrollments %}<a href="{% url 'module_detail' e.module.pk %}" class="badge badge-primary" style="margin:0.25rem;">{{ e.module.code }}</a>{% empty %}<p class="text-muted">Not enrolled in any module.</p>{% endfor %}
         </div></div>
 
@@ -73,7 +74,7 @@
             <tbody>{% for d in detections %}<tr><td>{{ d.timestamp|date:"M d, H:i:s" }}</td><td>#{{ d.session_id }}</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">No detections.</td></tr>{% endfor %}</tbody></table>
         </div>
 
-        {% if profile.notes %}<div class="card mt-4"><div class="card-header"><h3>Teacher Notes</h3></div><div class="card-body">{{ profile.notes }}</div></div>{% endif %}
+        {% if profile.notes %}<div class="card mt-4"><div class="card-header"><h3>Lecturer Notes</h3></div><div class="card-body">{{ profile.notes }}</div></div>{% endif %}
     </div>
 </div>
 {% endblock %}

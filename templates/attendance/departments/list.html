@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Departments{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
+{% block page_header %}
+<div class="page-header">
+  <div class="page-header-text"><h1>Departments</h1><p class="page-header-subtitle">Manage academic departments</p></div>
+  <div class="page-header-actions"><a href="{% url 'department_create' %}" class="btn btn-primary"><i data-lucide="plus"></i> Create Department</a></div>
+</div>
+{% endblock %}
+{% block content %}
+<form class="filter-bar" method="get">
+  <div class="table-search" style="max-width:280px;"><span class="table-search-icon"><i data-lucide="search"></i></span>
+  <input type="search" name="q" value="{{ filters.q }}" placeholder="Search departments..."></div>
+  <select name="status" class="form-select" style="width:auto;"><option value="">All Status</option>{% for val,label in status_choices %}<option value="{{ val }}" {% if filters.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <select name="sort" class="form-select" style="width:auto;">
+    <option value="name" {% if filters.sort == 'name' %}selected{% endif %}>Name A–Z</option>
+    <option value="-name" {% if filters.sort == '-name' %}selected{% endif %}>Name Z–A</option>
+    <option value="code" {% if filters.sort == 'code' %}selected{% endif %}>Code</option>
+    <option value="-created_at" {% if filters.sort == '-created_at' %}selected{% endif %}>Newest</option>
+  </select>
+  <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+</form>
+<div class="card"><table class="data-table">
+<thead><tr>
+  <th>Name</th><th>Code</th><th>Head of Department</th><th>Programmes</th><th>Modules</th><th>Lecturers</th><th>Students</th><th>Status</th><th>Actions</th>
+</tr></thead>
+<tbody>
+{% for row in rows %}
+<tr>
+  <td><a href="{% url 'department_detail' row.department.pk %}" class="font-medium">{{ row.department.name }}</a></td>
+  <td>{{ row.department.code }}</td>
+  <td>{% if row.department.head_of_department %}{{ row.department.head_of_department.get_full_name|default:row.department.head_of_department.username }}{% else %}—{% endif %}</td>
+  <td>{{ row.programmes }}</td>
+  <td>{{ row.modules }}</td>
+  <td>{{ row.lecturers }}</td>
+  <td>{{ row.students }}</td>
+  <td><span class="badge badge-{% if row.department.status == 'active' %}success{% else %}neutral{% endif %}">{{ row.department.get_status_display }}</span></td>
+  <td>
+    <a href="{% url 'department_detail' row.department.pk %}" class="btn btn-sm btn-ghost">View</a>
+    <a href="{% url 'department_edit' row.department.pk %}" class="btn btn-sm btn-ghost">Edit</a>
+  </td>
+</tr>
+{% empty %}
+<tr><td colspan="9"><div class="empty-state"><h3>No departments yet</h3><a href="{% url 'department_create' %}" class="btn btn-primary">Create Department</a></div></td></tr>
+{% endfor %}
+</tbody></table>
+{% if page_obj.has_other_pages %}
+<div class="table-pagination"><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+<div class="pagination-controls">{% if page_obj.has_previous %}<a class="pagination-btn" href="?page={{ page_obj.previous_page_number }}&q={{ filters.q }}&status={{ filters.status }}&sort={{ filters.sort }}">‹</a>{% endif %}
+<span class="pagination-btn active">{{ page_obj.number }}</span>
+{% if page_obj.has_next %}<a class="pagination-btn" href="?page={{ page_obj.next_page_number }}&q={{ filters.q }}&status={{ filters.status }}&sort={{ filters.sort }}">›</a>{% endif %}</div></div>
+{% endif %}
+</div>
+{% endblock %}

@@ -95,6 +95,15 @@ def programme_edit(request, pk):
 @require_POST
 def programme_delete(request, pk):
     programme = get_object_or_404(Programme, pk=pk)
+    module_count = Module.objects.filter(programme=programme).count()
+    student_count = StudentProfile.objects.filter(programme=programme).count()
+    if module_count or student_count:
+        messages.error(
+            request,
+            f"Cannot delete {programme.code}: it has {module_count} module(s) and "
+            f"{student_count} student(s). Reassign or remove them first.",
+        )
+        return redirect("programme_detail", pk=pk)
     code = programme.code
     programme.delete()
     messages.success(request, f"Programme {code} deleted.")

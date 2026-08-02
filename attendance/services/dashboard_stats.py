@@ -7,6 +7,7 @@ from django.utils import timezone
 from attendance.models import (
     AttendanceSummary,
     Course,
+    Department,
     Detection,
     Enrollment,
     Module,
@@ -63,6 +64,14 @@ def build_dashboard_context(user):
     total_students = Student.objects.count()
     courses_count = Module.objects.filter(Q(teacher=user) | Q(teacher__isnull=True)).count()
     programmes_count = Programme.objects.count()
+    departments_count = Department.objects.count()
+    from django.contrib.auth.models import User
+
+    lecturers_count = (
+        User.objects.filter(Q(modules__isnull=False) | Q(sessions__isnull=False))
+        .distinct()
+        .count()
+    )
     active_sessions = sessions.filter(is_active=True).count()
 
     today_summaries = AttendanceSummary.objects.filter(session__in=today_sess.filter(is_active=False))
@@ -100,6 +109,8 @@ def build_dashboard_context(user):
         "courses": courses_count,
         "modules": courses_count,
         "programmes": programmes_count,
+        "departments": departments_count,
+        "lecturers": lecturers_count,
         "active_sessions": active_sessions,
     }
 
@@ -107,6 +118,7 @@ def build_dashboard_context(user):
         "has_active": bool(active),
         "session_id": active.id if active else None,
         "teacher_name": user.get_full_name() or user.username,
+        "lecturer_name": user.get_full_name() or user.username,
         "course_name": active.module.name if active and active.module else "—",
         "course_code": active.module.code if active and active.module else "",
         "module_name": active.module.name if active and active.module else "—",

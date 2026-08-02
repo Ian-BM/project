@@ -118,6 +118,7 @@ def student_create(request):
                 phone=form.cleaned_data.get("phone", ""),
                 department=form.cleaned_data.get("department"),
                 programme=form.cleaned_data.get("programme"),
+                year_of_study=form.cleaned_data.get("year_of_study"),
                 status=form.cleaned_data["status"],
                 teacher=request.user,
                 recognition_status=StudentProfile.RECOG_PENDING,
@@ -276,12 +277,15 @@ def api_search(request):
     )[:8]
     modules = Module.objects.filter(Q(name__icontains=q) | Q(code__icontains=q))[:8]
     programmes = Programme.objects.filter(Q(name__icontains=q) | Q(code__icontains=q))[:6]
-    from attendance.models import Session
+    from attendance.models import Department, Session
+    departments = Department.objects.filter(Q(name__icontains=q) | Q(code__icontains=q))[:6]
     sessions = Session.objects.filter(Q(name__icontains=q) | Q(room__icontains=q))[:6]
 
     results = []
     for s in students:
         results.append({"type": "student", "label": s.name, "url": f"/students/{s.pk}/", "icon": "user"})
+    for d in departments:
+        results.append({"type": "department", "label": f"{d.code} — {d.name}", "url": f"/departments/{d.pk}/", "icon": "building-2"})
     for p in programmes:
         results.append({"type": "programme", "label": f"{p.code} — {p.name}", "url": f"/programmes/{p.pk}/", "icon": "graduation-cap"})
     for m in modules:

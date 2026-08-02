@@ -216,10 +216,8 @@ def leaderboard_data():
             "student": s,
             "attendance": student_attendance_percent(s),
             "confidence": student_avg_confidence(s),
-            "performance": student_avg_performance(s) or 0,
         })
     return {
-        "top_performance": sorted(ranked, key=lambda x: x["performance"], reverse=True)[:5],
         "highest_attendance": sorted(ranked, key=lambda x: x["attendance"], reverse=True)[:5],
         "lowest_attendance": sorted(ranked, key=lambda x: x["attendance"])[:5],
         "best_recognition": sorted(ranked, key=lambda x: x["confidence"], reverse=True)[:5],

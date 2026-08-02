@@ -11,6 +11,7 @@
 {% block content %}
 <div class="stat-grid mb-6">
   <div class="stat-card"><div class="stat-card-value">{{ kpis.students }}</div><div class="stat-card-label">Students</div></div>
+  <div class="stat-card"><div class="stat-card-value">{{ kpis.departments }}</div><div class="stat-card-label">Departments</div></div>
   <div class="stat-card"><div class="stat-card-value">{{ kpis.programmes }}</div><div class="stat-card-label">Programmes</div></div>
   <div class="stat-card"><div class="stat-card-value">{{ kpis.modules }}</div><div class="stat-card-label">Modules</div></div>
   <div class="stat-card"><div class="stat-card-value">{{ kpis.sessions }}</div><div class="stat-card-label">Sessions</div></div>
@@ -27,46 +28,46 @@
 </div>
 <div class="grid-2 mb-6">
   <div class="card"><div class="card-header"><h3>Module Statistics</h3></div><div class="card-body"><canvas id="modChart" height="200"></canvas></div></div>
-  <div class="card"><div class="card-header"><h3>Attendance vs Performance</h3></div><div class="card-body"><canvas id="corrChart" height="200"></canvas></div></div>
+  <div class="card"><div class="card-header"><h3>Attendance vs Confidence</h3></div><div class="card-body"><canvas id="corrChart" height="200"></canvas></div></div>
 </div>
 
 <div class="grid-2 mb-6">
-  <div class="card"><div class="card-header"><h3>Top Performing Students</h3></div>
-    <table class="data-table"><thead><tr><th>Student</th><th>Perf %</th></tr></thead>
-    <tbody>{% for r in leaders.top_performance %}<tr><td>{{ r.student.name }}</td><td>{{ r.performance }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
-  </div>
   <div class="card"><div class="card-header"><h3>Highest Attendance</h3></div>
     <table class="data-table"><thead><tr><th>Student</th><th>%</th></tr></thead>
     <tbody>{% for r in leaders.highest_attendance %}<tr><td>{{ r.student.name }}</td><td>{{ r.attendance }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
   </div>
-</div>
-<div class="grid-2 mb-6">
   <div class="card"><div class="card-header"><h3>Lowest Attendance</h3></div>
     <table class="data-table"><thead><tr><th>Student</th><th>%</th></tr></thead>
     <tbody>{% for r in leaders.lowest_attendance %}<tr><td>{{ r.student.name }}</td><td>{{ r.attendance }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
   </div>
+</div>
+<div class="grid-2 mb-6">
   <div class="card"><div class="card-header"><h3>Best Recognition</h3></div>
     <table class="data-table"><thead><tr><th>Student</th><th>Conf %</th></tr></thead>
     <tbody>{% for r in leaders.best_recognition %}<tr><td>{{ r.student.name }}</td><td>{{ r.confidence }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
   </div>
-</div>
-<div class="grid-2 mb-6">
   <div class="card"><div class="card-header"><h3>Lowest Confidence</h3></div>
     <table class="data-table"><thead><tr><th>Student</th><th>%</th></tr></thead>
     <tbody>{% for r in leaders.lowest_confidence %}<tr><td>{{ r.student.name }}</td><td>{{ r.confidence }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
   </div>
+</div>
+<div class="grid-2 mb-6">
   <div class="card"><div class="card-header"><h3>Best Modules</h3></div>
     <table class="data-table"><thead><tr><th>Module</th><th>Att %</th></tr></thead>
     <tbody>{% for r in leaders.best_modules %}<tr><td>{{ r.module.code }}</td><td>{{ r.attendance_percent }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
   </div>
-</div>
-<div class="grid-2 mb-6">
   <div class="card"><div class="card-header"><h3>Best Programmes</h3></div>
     <table class="data-table"><thead><tr><th>Programme</th><th>Att %</th></tr></thead>
     <tbody>{% for r in leaders.best_programmes %}<tr><td>{{ r.programme.code }}</td><td>{{ r.attendance_percent }}%</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">—</td></tr>{% endfor %}</tbody></table>
   </div>
+</div>
+<div class="grid-2 mb-6">
   <div class="card"><div class="card-header"><h3>AI Insights</h3></div><div class="card-body activity-list">
     {% for i in insights %}<div class="activity-item"><strong>{{ i.title }}</strong><p class="text-muted">{{ i.message }}</p></div>{% empty %}<p class="text-muted">No insights.</p>{% endfor %}
+  </div></div>
+  <div class="card"><div class="card-header"><h3>Lecturer Statistics</h3></div><div class="card-body">
+    <p class="text-muted">Session and module activity by lecturer is summarised in Reports → Lecturer Report.</p>
+    <a href="{% url 'report_view' 'teacher' %}" class="btn btn-secondary btn-sm">Open Lecturer Report</a>
   </div></div>
 </div>
 
@@ -94,7 +95,7 @@
   new Chart(document.getElementById('recTrend'), {type:'bar', data:{labels:d.recognition_trends.labels, datasets:[{label:'Detections', data:d.recognition_trends.values, backgroundColor:'#7c3aed'}]}});
   new Chart(document.getElementById('progChart'), {type:'doughnut', data:{labels:d.programmes.labels, datasets:[{data:d.programmes.values, backgroundColor:['#2563eb','#16a34a','#ca8a04','#dc2626','#0891b2','#7c3aed','#ea580c','#64748b']}]}});
   new Chart(document.getElementById('modChart'), {type:'bar', data:{labels:d.modules.labels, datasets:[{label:'Sessions', data:d.modules.values, backgroundColor:'#0891b2'}]}});
-  new Chart(document.getElementById('corrChart'), {type:'scatter', data:{datasets:[{label:'Students', data:corr.map(function(c){return {x:c.attendance,y:c.performance,label:c.name};}), backgroundColor:'#2563eb'}]}, options:{scales:{x:{title:{display:true,text:'Attendance %'}, max:100}, y:{title:{display:true,text:'Performance %'}, max:100}}}});
+  new Chart(document.getElementById('corrChart'), {type:'scatter', data:{datasets:[{label:'Students', data:corr.map(function(c){return {x:c.attendance,y:c.confidence,label:c.name};}), backgroundColor:'#2563eb'}]}, options:{scales:{x:{title:{display:true,text:'Attendance %'}, max:100}, y:{title:{display:true,text:'Confidence %'}, max:100}}}});
 })();
 </script>
 {% endblock %}

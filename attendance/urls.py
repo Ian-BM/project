@@ -15,6 +15,14 @@ from .views import (
 )
 from .views_analytics import analytics_dashboard, notification_mark_read, notifications_list
 from .views_confidence import confidence_dashboard
+from .views_departments import (
+    api_programmes_by_department,
+    department_create,
+    department_delete,
+    department_detail,
+    department_edit,
+    department_list,
+)
 from .views_modules import (
     module_create,
     module_delete,
@@ -23,13 +31,6 @@ from .views_modules import (
     module_enroll,
     module_list,
     module_unenroll,
-)
-from .views_performance import (
-    assessment_create,
-    assessment_detail,
-    assessment_list,
-    performance_dashboard,
-    student_performance,
 )
 from .views_programmes import (
     programme_create,
@@ -76,6 +77,7 @@ urlpatterns = [
     path("api/attendance/live/", api_live_attendance, name="api_live_attendance"),
     path("api/dashboard/charts/", api_dashboard_charts, name="api_dashboard_charts"),
     path("api/search/", api_search, name="api_search"),
+    path("api/programmes/", api_programmes_by_department, name="api_programmes_by_department"),
 
     # Students
     path("students/", student_list, name="student_list"),
@@ -84,7 +86,13 @@ urlpatterns = [
     path("students/<int:pk>/", student_detail, name="student_detail"),
     path("students/<int:pk>/edit/", student_edit, name="student_edit"),
     path("students/<int:pk>/upload/", student_upload_images, name="student_upload_images"),
-    path("students/<int:pk>/performance/", student_performance, name="student_performance"),
+
+    # Departments
+    path("departments/", department_list, name="department_list"),
+    path("departments/add/", department_create, name="department_create"),
+    path("departments/<int:pk>/", department_detail, name="department_detail"),
+    path("departments/<int:pk>/edit/", department_edit, name="department_edit"),
+    path("departments/<int:pk>/delete/", department_delete, name="department_delete"),
 
     # Programmes
     path("programmes/", programme_list, name="programme_list"),
@@ -124,12 +132,6 @@ urlpatterns = [
     path("sessions/<int:pk>/cancel/", session_cancel, name="session_cancel"),
     path("sessions/<int:pk>/export/", session_export, name="session_export"),
     path("sessions/<int:pk>/print/", session_print, name="session_print"),
-
-    # Performance
-    path("performance/", performance_dashboard, name="performance_dashboard"),
-    path("performance/assessments/", assessment_list, name="assessment_list"),
-    path("performance/assessments/add/", assessment_create, name="assessment_create"),
-    path("performance/assessments/<int:pk>/", assessment_detail, name="assessment_detail"),
 
     # Confidence
     path("confidence/", confidence_dashboard, name="confidence_dashboard"),

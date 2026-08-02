@@ -76,7 +76,7 @@
                         <button class="btn btn-primary" id="captureBtn" type="button"><i data-lucide="camera"></i> Capture Now</button>
                     </div>
                     <div class="live-stats-grid mt-4">
-                        <div class="live-stat"><span class="text-muted">Teacher</span><strong>{{ request.user.first_name|default:request.user.username }}</strong></div>
+                        <div class="live-stat"><span class="text-muted">Lecturer</span><strong>{{ request.user.first_name|default:request.user.username }}</strong></div>
                         <div class="live-stat"><span class="text-muted">Frames</span><strong id="framesProcessed">0</strong></div>
                         <div class="live-stat"><span class="text-muted">Present</span><strong id="studentsPresentCount">0</strong></div>
                         <div class="live-stat"><span class="text-muted">Unknown</span><strong id="unknownFacesCount">0</strong></div>
