@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static tz %}
+{% load static %}
 
 {% block title %}{{ student.name }}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/attendance.css' %}">{% endblock %}
@@ -70,10 +70,8 @@
         </div>
 
         <div class="card"><div class="card-header"><h3>Recognition History</h3></div>
-            {% timezone "Africa/Dar_es_Salaam" %}
             <table class="data-table"><thead><tr><th>Time</th><th>Session</th></tr></thead>
-            <tbody>{% for d in detections %}<tr><td>{{ d.timestamp|fmt_datetime }}</td><td>#{{ d.session_id }}</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">No detections.</td></tr>{% endfor %}</tbody></table>
-            {% endtimezone %}
+            <tbody>{% for d in detections %}<tr><td>{{ d.timestamp_display }}</td><td>#{{ d.session_id }}</td></tr>{% empty %}<tr><td colspan="2" class="text-muted">No detections.</td></tr>{% endfor %}</tbody></table>
         </div>
 
         {% if profile.notes %}<div class="card mt-4"><div class="card-header"><h3>Lecturer Notes</h3></div><div class="card-body">{{ profile.notes }}</div></div>{% endif %}

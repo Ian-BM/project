@@ -1,8 +1,8 @@
 /**
  * Live clock synchronized to Django server time.
- * Always renders in Africa/Dar_es_Salaam using format:
- *   02 Aug 2026 • 14:35:27
- * Must match Recognition History / fmt_datetime (same timezone + seconds).
+ * Always renders in Africa/Dar_es_Salaam using the same format as
+ * Recognition History / fmt_datetime:
+ *   Aug 02, 23:14:24
  */
 const ClockManager = {
   TZ: "Africa/Dar_es_Salaam",
@@ -35,11 +35,10 @@ const ClockManager = {
   },
 
   formatDateTime(d) {
-    const dateParts = new Intl.DateTimeFormat("en-GB", {
+    const dateParts = new Intl.DateTimeFormat("en-US", {
       timeZone: this.TZ,
       day: "2-digit",
       month: "short",
-      year: "numeric",
     }).formatToParts(d);
 
     const timeParts = new Intl.DateTimeFormat("en-GB", {
@@ -54,14 +53,12 @@ const ClockManager = {
     const get = (parts, type) => (parts.find((p) => p.type === type) || {}).value || "";
     const day = get(dateParts, "day");
     const month = get(dateParts, "month");
-    const year = get(dateParts, "year");
     let hour = get(timeParts, "hour");
     const minute = get(timeParts, "minute");
     const second = get(timeParts, "second");
-    // Some engines emit "24" for midnight with hourCycle h23 — normalize
     if (hour === "24") hour = "00";
 
-    return `${day} ${month} ${year} • ${hour}:${minute}:${second}`;
+    return `${month} ${day}, ${hour}:${minute}:${second}`;
   },
 };
 

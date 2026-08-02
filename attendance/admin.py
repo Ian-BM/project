@@ -99,9 +99,15 @@ class SessionAdmin(admin.ModelAdmin):
 
 @admin.register(Detection)
 class DetectionAdmin(admin.ModelAdmin):
-    list_display = ("student", "session", "timestamp")
+    list_display = ("student", "session", "timestamp_local")
     list_filter = ("session",)
     search_fields = ("student__name",)
+
+    @admin.display(description="Timestamp", ordering="timestamp")
+    def timestamp_local(self, obj):
+        from attendance.utils.datetime_fmt import fmt_datetime
+
+        return fmt_datetime(obj.timestamp)
 
 
 @admin.register(AttendanceSummary)
@@ -118,8 +124,14 @@ class AttendanceAdmin(admin.ModelAdmin):
 
 @admin.register(UnknownFace)
 class UnknownFaceAdmin(admin.ModelAdmin):
-    list_display = ("session", "tracking_id", "confidence", "timestamp")
+    list_display = ("session", "tracking_id", "confidence", "timestamp_local")
     list_filter = ("session",)
+
+    @admin.display(description="Timestamp", ordering="timestamp")
+    def timestamp_local(self, obj):
+        from attendance.utils.datetime_fmt import fmt_datetime
+
+        return fmt_datetime(obj.timestamp)
 
 
 @admin.register(Assessment)
