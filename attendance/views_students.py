@@ -27,6 +27,7 @@ from attendance.models import (
 )
 from attendance.services.dashboard_stats import student_attendance_percent
 from attendance.services.dataset import copy_image_to_dataset, encoding_update_instructions, validate_student_image
+from attendance.utils.datetime_fmt import fmt_datetime
 
 
 def _student_list_queryset(request):
@@ -170,7 +171,16 @@ def student_detail(request, pk):
         )
 
     summaries = AttendanceSummary.objects.filter(student=student).select_related("session").order_by("-session__end_time")[:20]
-    detections = Detection.objects.filter(student=student).select_related("session").order_by("-timestamp")[:20]
+    detections_qs = Detection.objects.filter(student=student).select_related("session").order_by("-timestamp")[:20]
+    # Pre-format in Dar es Salaam so Recognition History always matches the site clock
+    detections = [
+        {
+            "session_id": d.session_id,
+            "timestamp": d.timestamp,
+            "timestamp_display": fmt_datetime(d.timestamp),
+        }
+        for d in detections_qs
+    ]
     enrollments = ModuleEnrollment.objects.filter(student=student).select_related("module")
     programme_enrollments = ProgrammeEnrollment.objects.filter(student=student).select_related("programme")
 

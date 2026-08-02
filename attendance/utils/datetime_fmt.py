@@ -1,17 +1,21 @@
 """
 Canonical date/time formatting for Univera.
 
-All UI timestamps should go through these helpers so every page
-displays the same Africa/Dar_es_Salaam local time and format:
+Always display Africa/Dar_es_Salaam wall time (never raw UTC), using:
 
   Date:      02 Aug 2026
   Time:      14:35
   DateTime:  02 Aug 2026 • 14:35
 """
 
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timezone as dt_timezone
+from zoneinfo import ZoneInfo
 
 from django.utils import timezone
+
+# Single source of truth for display — do not rely on ambient Django activate()
+DISPLAY_TZ = ZoneInfo("Africa/Dar_es_Salaam")
+UTC = dt_timezone.utc
 
 DATE_FMT = "%d %b %Y"
 TIME_FMT = "%H:%M"
@@ -19,19 +23,22 @@ DATETIME_SEP = " • "
 
 
 def local_now():
-    """Current timezone-aware datetime in the active Django timezone."""
-    return timezone.localtime(timezone.now())
+    """Current timezone-aware datetime in Africa/Dar_es_Salaam."""
+    return timezone.now().astimezone(DISPLAY_TZ)
 
 
 def to_local(value):
-    """Convert a datetime to the active timezone; leave date/time as-is."""
+    """
+    Convert any datetime to Africa/Dar_es_Salaam for display.
+
+    DB values are stored in UTC (USE_TZ=True). Naive values are treated as UTC.
+    """
     if value is None:
         return None
     if isinstance(value, datetime):
         if timezone.is_naive(value):
-            # Treat naive values as UTC (Django default storage) then localize
-            value = timezone.make_aware(value, timezone.utc)
-        return timezone.localtime(value)
+            value = value.replace(tzinfo=UTC)
+        return value.astimezone(DISPLAY_TZ)
     return value
 
 
@@ -60,7 +67,7 @@ def fmt_time(value):
 
 
 def fmt_datetime(value):
-    """Format a datetime as DD MMM YYYY • HH:MM."""
+    """Format a datetime as DD MMM YYYY • HH:MM in Dar es Salaam."""
     if value is None or value == "":
         return "—"
     value = to_local(value)
